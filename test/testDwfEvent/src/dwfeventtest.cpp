@@ -1,12 +1,11 @@
 /*!
- * @file dwfevent.h
- * @brief Class representing events.
+ * @file dwfeventtest.cpp
+ * @brief Class implementing DwfEvent unit tests.
  * @author SignC0dingDw@rf
  * @date 26 May 2020
  *
- * Class representing an event identified by an unique EventID.
- * Currently EventID is a unique uint32_t.
- * Typedef of IdentifiedElement with EventID.
+ * Implementation of class performing DwfEvent unit tests. <br>
+ * Inherits from TestFixture
  *
  */
 
@@ -71,26 +70,61 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#ifndef DWF_EVENT_H
-#define DWF_EVENT_H
+#include "dwfeventtest.h"
 
-#include <stdint.h>
-#include "identifiedelement.h"
+CPPUNIT_TEST_SUITE_REGISTRATION(DwfEventTest);
 
-/*!
-* @namespace EventSystem
-* @brief A namespace used to regroup all elements related to envent processing systems
-*/
-namespace EventSystem
+DwfEventTest::DwfEventTest()
 {
-    /*! @typedef EventID
-    *  @brief ID identifing event. A simple 32 bits unsigned integer
-    */
-    typedef uint32_t EventID; // Definition of type used to identify events
-
-    /*! @typedef DwfEvent
-    *  @brief Event is an identified element with EventID as id type
-    */
-    using DwfEvent = DwfCommon::IdentifiedElement<EventID>;
 }
-#endif // DWF_EVENT_H
+
+DwfEventTest::~DwfEventTest()
+{
+}
+
+void DwfEventTest::setUp()
+{
+}
+
+void DwfEventTest::tearDown()
+{
+}
+
+void DwfEventTest::testIdentical()
+{
+    EventSystem::DwfEvent evA(3);
+    EventSystem::DwfEvent evB(3);
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Event with same id should be identical", true, evA == evB);
+}
+
+void DwfEventTest::testDifferent()
+{
+    EventSystem::DwfEvent evA(4);
+    EventSystem::DwfEvent evB(2);
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Event with different id should be different", false, evA == evB);
+}
+
+//  ______________________________
+// |                              |
+// |    ______________________    |
+// |   |                      |   |
+// |   |         Sign         |   |
+// |   |        C0ding        |   |
+// |   |        Dw@rf         |   |
+// |   |         1.0          |   |
+// |   |______________________|   |
+// |                              |
+// |______________________________|
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |__|

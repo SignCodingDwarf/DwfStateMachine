@@ -1,12 +1,11 @@
 /*!
- * @file dwfevent.h
- * @brief Class representing events.
+ * @file dwfeventtest.h
+ * @brief Class implementing DwfEvent unit tests.
  * @author SignC0dingDw@rf
  * @date 26 May 2020
  *
- * Class representing an event identified by an unique EventID.
- * Currently EventID is a unique uint32_t.
- * Typedef of IdentifiedElement with EventID.
+ * Definition of class performing DwfEvent unit tests. <br>
+ * Inherits from TestFixture
  *
  */
 
@@ -71,26 +70,100 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#ifndef DWF_EVENT_H
-#define DWF_EVENT_H
+#ifndef DWF_EVENT_TEST_H
+#define DWF_EVENT_TEST_H
 
-#include <stdint.h>
-#include "identifiedelement.h"
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/Portability.h>
+#include "dwfevent.h"
 
-/*!
-* @namespace EventSystem
-* @brief A namespace used to regroup all elements related to envent processing systems
+/*! @class DwfEventTest
+* @brief Unit tests of DwfEvent class
+*
+* Inherits from TestFixture
+*
 */
-namespace EventSystem
+class DwfEventTest : public CPPUNIT_NS::TestFixture
 {
-    /*! @typedef EventID
-    *  @brief ID identifing event. A simple 32 bits unsigned integer
-    */
-    typedef uint32_t EventID; // Definition of type used to identify events
+public:
+    CPPUNIT_TEST_SUITE(DwfEventTest);
+        CPPUNIT_TEST(testIdentical);
+        CPPUNIT_TEST(testDifferent);
+    CPPUNIT_TEST_SUITE_END();
 
-    /*! @typedef DwfEvent
-    *  @brief Event is an identified element with EventID as id type
+public:
+    /*!
+    * @brief Constructor of the DwfEventTest class
+    *
+    * Does nothing.
+    *
     */
-    using DwfEvent = DwfCommon::IdentifiedElement<EventID>;
-}
-#endif // DWF_EVENT_H
+    DwfEventTest();
+
+    /*!
+    * @brief Desctructor of the DwfEventTest class
+    *
+    * Does nothing.
+    *
+    */
+    ~DwfEventTest();
+
+    /*!
+    * @brief Prepare execution environment of every test
+    *
+    * Does nothing.
+    *
+    */
+    void setUp();
+
+    /*!
+    * @brief Cleanup environment after execution of each test
+    *
+    * Does nothing.
+    *
+    */
+    void tearDown();
+
+    /*!
+    * @brief Check equality of events
+    *
+    * Creates two events with the same ID.
+    * Check they are considered identical.
+    *
+    */
+    void testIdentical();
+
+    /*!
+    * @brief Check inequality of events
+    *
+    * Creates two events with different ID.
+    * Check they are considered as different events.
+    *
+    */
+    void testDifferent();
+};
+
+#endif // DWF_EVENT_TEST_H
+
+//  ______________________________
+// |                              |
+// |    ______________________    |
+// |   |                      |   |
+// |   |         Sign         |   |
+// |   |        C0ding        |   |
+// |   |        Dw@rf         |   |
+// |   |         1.0          |   |
+// |   |______________________|   |
+// |                              |
+// |______________________________|
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |__|

@@ -1,12 +1,12 @@
 /*!
- * @file dwfevent.h
- * @brief Class representing events.
+ * @file identifiedelement.h
+ * @brief Class representing elements that can be compared using an identifier.
  * @author SignC0dingDw@rf
  * @date 26 May 2020
  *
- * Class representing an event identified by an unique EventID.
- * Currently EventID is a unique uint32_t.
- * Typedef of IdentifiedElement with EventID.
+ * Template class representing any element that is represented by an id. <br>
+ * Two elements are considered identical if their id is identical regardless of any payload they may carry. <br>
+ * Id class should contain operator== and copy constructor.
  *
  */
 
@@ -71,26 +71,70 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#ifndef DWF_EVENT_H
-#define DWF_EVENT_H
-
-#include <stdint.h>
-#include "identifiedelement.h"
+#ifndef IDENTIFIED_ELEMENT_H
+#define IDENTIFIED_ELEMENT_H
 
 /*!
-* @namespace EventSystem
-* @brief A namespace used to regroup all elements related to envent processing systems
+* @namespace DwfCommon
+* @brief A namespace used to regroup all elements common to dwarven projects
 */
-namespace EventSystem
-{
-    /*! @typedef EventID
-    *  @brief ID identifing event. A simple 32 bits unsigned integer
+namespace DwfCommon {
+    /*! @class IdentifiedElement
+    * @brief Class allowing to manage elements represented by an id
+    * @tparam T : type of the identifier. Should have operator== and copy constructor
+    *
     */
-    typedef uint32_t EventID; // Definition of type used to identify events
+    template<class T>
+    class IdentifiedElement
+    {
+    public:
+        /*!
+        * @brief Constructor of the IdentifiedElement class
+        * @param id : Value of the element id.
+        *
+        * Constructor of the IdentifiedElement class defining element id.
+        *
+        */
+        IdentifiedElement(T id);
 
-    /*! @typedef DwfEvent
-    *  @brief Event is an identified element with EventID as id type
-    */
-    using DwfEvent = DwfCommon::IdentifiedElement<EventID>;
+        /*!
+        * @brief Overload of operator==
+        * @param ref : Element to be compared with.
+        * @return true if element have the same id, false otherwise
+        *
+        * Overload of comparison operator. Only compares IDs to determine element equality.
+        *
+        */
+        bool operator==(const IdentifiedElement<T>& ref);
+
+    private:
+        T m_id; /*!< Id of the element. */
+    };
 }
-#endif // DWF_EVENT_H
+
+#include "identifiedelement.tpp"
+
+#endif // IDENTIFIED_ELEMENT_H
+
+//  ______________________________
+// |                              |
+// |    ______________________    |
+// |   |                      |   |
+// |   |         Sign         |   |
+// |   |        C0ding        |   |
+// |   |        Dw@rf         |   |
+// |   |         1.0          |   |
+// |   |______________________|   |
+// |                              |
+// |______________________________|
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |  |
+//               |__|
