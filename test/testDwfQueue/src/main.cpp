@@ -1,12 +1,11 @@
 /*!
- * @file dwfevent.h
- * @brief Class representing events.
+ * @file main.cpp
+ * @brief Main application file of DwfQueue unit tests.
  * @author SignC0dingDw@rf
- * @date 26 May 2020
+ * @date 11 June 2020
  *
- * Class representing an event identified by an unique EventID.
- * Currently EventID is a unique uint32_t.
- * Typedef of IdentifiedElement with EventID.
+ * Main application file of DwfQueue unit tests. <br>
+ * Allows to run every test or a single test by passing TestFixture::TestName as a binary call argument
  *
  */
 
@@ -71,29 +70,64 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#ifndef DWF_EVENT_H
-#define DWF_EVENT_H
+#include <cppunit/BriefTestProgressListener.h>
+#include <cppunit/CompilerOutputter.h>
+#include <cppunit/XmlOutputter.h>
+#include <cppunit/extensions/TestFactoryRegistry.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
 
-#include <stdint.h>
-#include "identifiedelement.h"
+#include <iostream>
+#include "dwfqueuesizegetterstest.h"
+#include "dwfqueuepushpoptest.h"
 
-/*!
-* @namespace EventSystem
-* @brief A namespace used to regroup all elements related to envent processing systems
-*/
-namespace EventSystem
+int main(int argc, char* argv[])
 {
-    /*! @typedef EventID
-    *  @brief ID identifing event. A simple 32 bits unsigned integer
-    */
-    typedef uint32_t EventID; // Definition of type used to identify events
+    // Create the event manager and test controller
+    CPPUNIT_NS::TestResult controller;
 
-    /*! @typedef DwfEvent
-    *  @brief Event is an identified element with EventID as id type
-    */
-    using DwfEvent = DwfCommon::IdentifiedElement<EventID>;
+    // Add a listener that colllects test result
+    CPPUNIT_NS::TestResultCollector result;
+    controller.addListener(&result);
+
+    // Add a listener that indicates the name of tests as they run
+    CPPUNIT_NS::BriefTestProgressListener progress;
+    controller.addListener(&progress);
+
+    // Setup test runner and assemble registered test suites
+    CPPUNIT_NS::TestRunner runner;
+    CPPUNIT_NS::Test* tests = CPPUNIT_NS::TestFactoryRegistry::getRegistry().makeTest();
+    runner.addTest(tests);
+
+    // Select the tests to run based on call arguments
+    std::string test="";
+    if(argc==2)
+    {
+        test=argv[1];
+        std::cout << "Running test : " << test << std::endl;
+    }
+    else
+    {
+        std::cout << "Running all tests" << std::endl;
+    }
+
+    // Run tests
+    try
+    {
+        runner.run(controller, test);
+    }
+    catch(std::exception& e)
+    {
+        std::cout << "Test generated exception : " << std::endl << e.what() << std::endl;
+    }
+
+    // display result
+    CPPUNIT_NS::CompilerOutputter outputter(&result, CPPUNIT_NS::stdCOut());
+    outputter.write();
+
+    return result.wasSuccessful() ? 0 : 1;
 }
-#endif // DWF_EVENT_H
 
 //  ______________________________
 // |                              |

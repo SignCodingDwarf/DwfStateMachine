@@ -1,12 +1,10 @@
 /*!
- * @file dwfevent.h
- * @brief Class representing events.
+ * @file dwfqueue.cpp
+ * @brief Class defining a thread safe queue.
  * @author SignC0dingDw@rf
- * @date 26 May 2020
+ * @date 15 June 2020
  *
- * Class representing an event identified by an unique EventID.
- * Currently EventID is a unique uint32_t.
- * Typedef of IdentifiedElement with EventID.
+ * Class defining a thread safe size-limited queue.
  *
  */
 
@@ -71,29 +69,106 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#ifndef DWF_EVENT_H
-#define DWF_EVENT_H
+#include "dwfqueue.h"
+#include <stdexcept>
 
-#include <stdint.h>
-#include "identifiedelement.h"
-
-/*!
-* @namespace EventSystem
-* @brief A namespace used to regroup all elements related to envent processing systems
-*/
-namespace EventSystem
+namespace DwfContainers
 {
-    /*! @typedef EventID
-    *  @brief ID identifing event. A simple 32 bits unsigned integer
-    */
-    typedef uint32_t EventID; // Definition of type used to identify events
+    template<class T>
+    const size_t DwfQueue<T>::C_NO_SIZE_LIMIT=0;
 
-    /*! @typedef DwfEvent
-    *  @brief Event is an identified element with EventID as id type
-    */
-    using DwfEvent = DwfCommon::IdentifiedElement<EventID>;
+    template<class T>
+    DwfQueue<T>::DwfQueue(size_t max_element_nb) : m_max_element_nb(max_element_nb), m_delete_in_progress(false)
+    {
+    }
+
+    template<class T>
+    DwfQueue<T>::~DwfQueue()
+    {
+        std::unique_lock<std::mutex> datalock(m_data_mutex);
+        m_delete_in_progress=true;
+        datalock.unlock();
+        m_control_content.notify_all();
+    }
+
+    template<class T>
+    bool DwfQueue<T>::empty() const
+    {
+        std::unique_lock<std::mutex> datalock(m_data_mutex);
+        return m_queue.empty();
+    }
+
+    template<class T>
+    size_t DwfQueue<T>::size() const
+    {
+        std::unique_lock<std::mutex> datalock(m_data_mutex);
+        return m_queue.size();
+    }
+
+    template<class T>
+    bool DwfQueue<T>::full() const
+    {
+        if(m_max_element_nb == C_NO_SIZE_LIMIT) // Can't be full if no size limit
+        {
+            return false;
+        }
+        else // Otherwise check if we have reached max element number
+        {
+            std::unique_lock<std::mutex> datalock(m_data_mutex);
+            return m_queue.size() == m_max_element_nb;
+        }
+    }
+
+    template<class T>
+    void DwfQueue<T>::push(const T& element)
+    {
+        if(full())
+        {
+            throw std::runtime_error("Queue is full. Cannot add element");
+        }
+        std::unique_lock<std::mutex> datalock(m_data_mutex);
+        m_queue.push(element);
+        datalock.unlock();
+        m_control_content.notify_one();
+    }
+
+    template<class T>
+    void DwfQueue<T>::push(T&& element)
+    {
+        if(full())
+        {
+            throw std::runtime_error("Queue is full. Cannot add element");
+        }
+        std::unique_lock<std::mutex> datalock(m_data_mutex);
+        m_queue.push(std::move(element));
+        datalock.unlock();
+        m_control_content.notify_one();
+    }
+
+    template<class T>
+    void DwfQueue<T>::pop(T& element)
+    {
+        std::unique_lock<std::mutex> datalock(m_data_mutex);
+        if(!m_delete_in_progress) // Do nothing if we are about to delete queue
+        {
+            m_control_content.wait(datalock, [this](){return !m_queue.empty() || m_delete_in_progress;}); // Only exit wait if queue is not empty or if deletion has been requested
+            element = m_queue.front();
+            m_queue.pop();
+        }
+    }
+
+    template<class T>
+    void DwfQueue<T>::pop(T&& element)
+    {
+        std::unique_lock<std::mutex> datalock(m_data_mutex);
+        if(!m_delete_in_progress)
+        {
+            m_control_content.wait(datalock, [this](){return !m_queue.empty() || m_delete_in_progress;}); // Only exit wait if queue is not empty or if deletion has been requested
+            element = std::move(m_queue.front());
+            m_queue.pop();
+        }
+    }
 }
-#endif // DWF_EVENT_H
 
 //  ______________________________
 // |                              |
@@ -117,3 +192,4 @@ namespace EventSystem
 //               |  |
 //               |  |
 //               |__|
+

@@ -1,12 +1,11 @@
 /*!
- * @file dwfevent.h
- * @brief Class representing events.
+ * @file dwfstatetest.h
+ * @brief Class implementing DwfQueue size getters unit tests.
  * @author SignC0dingDw@rf
- * @date 26 May 2020
+ * @date 11 June 2020
  *
- * Class representing an event identified by an unique EventID.
- * Currently EventID is a unique uint32_t.
- * Typedef of IdentifiedElement with EventID.
+ * Definition of class performing DwfQueue size getters unit tests. <br>
+ * Inherits from TestFixture
  *
  */
 
@@ -71,29 +70,107 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#ifndef DWF_EVENT_H
-#define DWF_EVENT_H
+#ifndef DWF_QUEUE_SIZE_GETTERS_TEST_H
+#define DWF_QUEUE_SIZE_GETTERS_TEST_H
 
-#include <stdint.h>
-#include "identifiedelement.h"
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/Portability.h>
+#include "dwfstate.h"
 
-/*!
-* @namespace EventSystem
-* @brief A namespace used to regroup all elements related to envent processing systems
+/*! @class DwfSizeGettersTest
+* @brief Unit tests of DwfQueue size getters
+*
+* Inherits from TestFixture
+*
 */
-namespace EventSystem
+class DwfSizeGettersTest : public CPPUNIT_NS::TestFixture
 {
-    /*! @typedef EventID
-    *  @brief ID identifing event. A simple 32 bits unsigned integer
-    */
-    typedef uint32_t EventID; // Definition of type used to identify events
+public:
+    CPPUNIT_TEST_SUITE(DwfSizeGettersTest);
+        CPPUNIT_TEST(testEmpty);
+        CPPUNIT_TEST(testSize);
+        CPPUNIT_TEST(testFullNoLimit);
+        CPPUNIT_TEST(testFullLimit);
+    CPPUNIT_TEST_SUITE_END();
 
-    /*! @typedef DwfEvent
-    *  @brief Event is an identified element with EventID as id type
+public:
+    /*!
+    * @brief Constructor of the DwfSizeGettersTest class
+    *
+    * Does nothing.
+    *
     */
-    using DwfEvent = DwfCommon::IdentifiedElement<EventID>;
-}
-#endif // DWF_EVENT_H
+    DwfSizeGettersTest();
+
+    /*!
+    * @brief Desctructor of the DwfSizeGettersTest class
+    *
+    * Does nothing.
+    *
+    */
+    ~DwfSizeGettersTest();
+
+    /*!
+    * @brief Prepare execution environment of every test
+    *
+    * Does nothing.
+    *
+    */
+    void setUp();
+
+    /*!
+    * @brief Cleanup environment after execution of each test
+    *
+    * Does nothing.
+    *
+    */
+    void tearDown();
+
+    /*!
+    * @brief Check empty behavior
+    *
+    * 0) Check that at init queue is empty.
+    * 1) Check that pushing element makes queue not empty.
+    * 2) Check that queue is empty after element is popped.
+    *
+    */
+    void testEmpty();
+
+    /*!
+    * @brief Check size behavior
+    *
+    * 0) Check that at init size is 0.
+    * 1) Push a few elements and check that size increases.
+    * 2) Pop elements and check that size decreases.
+    *
+    */
+    void testSize();
+
+    /*!
+    * @brief Check full behavior when no size limit has been defined
+    *
+    * 0) Construst queue with default constructor (should have no size limit).
+    * 0) Check that queue is not full at init
+    * 1) Push a lot of elements and check that it is still not full.
+    * 2) Do the same by explicitly calling constructor with C_NO_SIZE_LIMIT as queue size.
+    *
+    */
+    void testFullNoLimit();
+
+    /*!
+    * @brief Check full behavior when a size limit has been defined
+    *
+    * 0) Construst queue with a size.
+    * 0) Check that queue is not full at init.
+    * 1) Push elements up to size-1 and check it is still not full.
+    * 2) Push a last element and check it is now full.
+    * 3) Pop an element an check it is no longer full.
+    *
+    */
+    void testFullLimit();
+};
+
+#endif // DWF_QUEUE_SIZE_GETTERS_TEST_H
 
 //  ______________________________
 // |                              |

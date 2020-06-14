@@ -1,12 +1,11 @@
 /*!
- * @file dwfevent.h
- * @brief Class representing events.
+ * @file dwfqueuepushpoptest.h
+ * @brief Class implementing DwfQueue push and pop unit tests.
  * @author SignC0dingDw@rf
- * @date 26 May 2020
+ * @date 15 June 2020
  *
- * Class representing an event identified by an unique EventID.
- * Currently EventID is a unique uint32_t.
- * Typedef of IdentifiedElement with EventID.
+ * Definition of class performing DwfQueue push and pop unit tests. <br>
+ * Inherits from TestFixture
  *
  */
 
@@ -71,29 +70,128 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#ifndef DWF_EVENT_H
-#define DWF_EVENT_H
+#ifndef DWF_QUEUE_PUSH_POP_TEST_H
+#define DWF_QUEUE_PUSH_POP_TEST_H
 
-#include <stdint.h>
-#include "identifiedelement.h"
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/Portability.h>
 
-/*!
-* @namespace EventSystem
-* @brief A namespace used to regroup all elements related to envent processing systems
+/*! @class DwfSizePushPopTest
+* @brief Unit tests of DwfQueue push and pop
+*
+* Inherits from TestFixture
+*
 */
-namespace EventSystem
+class DwfSizePushPopTest : public CPPUNIT_NS::TestFixture
 {
-    /*! @typedef EventID
-    *  @brief ID identifing event. A simple 32 bits unsigned integer
-    */
-    typedef uint32_t EventID; // Definition of type used to identify events
+public:
+    CPPUNIT_TEST_SUITE(DwfSizePushPopTest);
+        CPPUNIT_TEST(testPushPopCopy);
+        CPPUNIT_TEST(testPushPopMove);
+        CPPUNIT_TEST(testPushPopCopyFull);
+        CPPUNIT_TEST(testPushPopMoveFull);
+        CPPUNIT_TEST(testPopBlockingCopy);
+        CPPUNIT_TEST(testPopBlockingMove);
+    CPPUNIT_TEST_SUITE_END();
 
-    /*! @typedef DwfEvent
-    *  @brief Event is an identified element with EventID as id type
+public:
+    /*!
+    * @brief Constructor of the DwfSizePushPopTest class
+    *
+    * Does nothing.
+    *
     */
-    using DwfEvent = DwfCommon::IdentifiedElement<EventID>;
-}
-#endif // DWF_EVENT_H
+    DwfSizePushPopTest();
+
+    /*!
+    * @brief Desctructor of the DwfSizePushPopTest class
+    *
+    * Does nothing.
+    *
+    */
+    ~DwfSizePushPopTest();
+
+    /*!
+    * @brief Prepare execution environment of every test
+    *
+    * Does nothing.
+    *
+    */
+    void setUp();
+
+    /*!
+    * @brief Cleanup environment after execution of each test
+    *
+    * Does nothing.
+    *
+    */
+    void tearDown();
+
+    /*!
+    * @brief Check push and pop behavior, copy version
+    *
+    * 0) Create an integer queue.
+    * 1) Push a few integers in it.
+    * 2) Pop them and check they are extracted in order.
+    *
+    */
+    void testPushPopCopy();
+
+    /*!
+    * @brief Check push and pop behavior, move version
+    *
+    * 0) Create an unique_ptr<int> queue.
+    * 1) Push a few unique_ptr in it. Check they are moved.
+    * 2) Pop them and check they are extracted in order.
+    *
+    */
+    void testPushPopMove();
+
+    /*!
+    * @brief Check push and pop behavior when queue is full
+    *
+    * 0) Create an integer queue.
+    * 1) Push elements until it is full
+    * 2) Check that next push triggers an exception
+    * 3) Pop element and try to push to check it is available again
+    *
+    */
+    void testPushPopCopyFull();
+
+    /*!
+    * @brief Check push and pop behavior, move version, when queue is full
+    *
+    * 0) Create an unique_ptr<int> queue.
+    * 1) Push elements until it is full
+    * 2) Check that next push triggers an exception
+    * 3) Pop element and try to push to check it is available again
+    *
+    */
+    void testPushPopMoveFull();
+
+
+    /*!
+    * @brief Check pop is indeed
+    *
+    * 0) Create an int queue.
+    * 1) Spawn a waiting thread and wait for elements
+    * 2) Wait a bit to check pop does not go out and push elements
+    *
+    */
+    void testPopBlockingCopy();
+
+    /*!
+    * @brief Check pop is indeed
+    *
+    * 0) Create an unique_ptr<int> queue.
+    * 1) Spawn a waiting thread and wait for elements
+    * 2) Wait a bit to check pop does not go out and push elements
+    *
+    */
+    void testPopBlockingMove();
+};
+
+#endif // DWF_QUEUE_PUSH_POP_TEST_H
 
 //  ______________________________
 // |                              |
