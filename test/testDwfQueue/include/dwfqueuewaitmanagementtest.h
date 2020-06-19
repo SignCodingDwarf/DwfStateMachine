@@ -1,11 +1,11 @@
 /*!
- * @file main.cpp
- * @brief Main application file of DwfQueue unit tests.
+ * @file dwfqueuewaitmanagement.h
+ * @brief Class implementing DwfQueue wait management unit tests.
  * @author SignC0dingDw@rf
- * @date 11 June 2020
+ * @date 19 June 2020
  *
- * Main application file of DwfQueue unit tests. <br>
- * Allows to run every test or a single test by passing TestFixture::TestName as a binary call argument
+ * Definition of class performing DwfQueue wait management unit tests. <br>
+ * Inherits from TestFixture
  *
  */
 
@@ -70,65 +70,86 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#include <cppunit/BriefTestProgressListener.h>
-#include <cppunit/CompilerOutputter.h>
-#include <cppunit/XmlOutputter.h>
-#include <cppunit/extensions/TestFactoryRegistry.h>
-#include <cppunit/TestResult.h>
-#include <cppunit/TestResultCollector.h>
-#include <cppunit/TestRunner.h>
+#ifndef DWF_QUEUE_WAIT_MANAGEMENT_TEST_H
+#define DWF_QUEUE_WAIT_MANAGEMENT_TEST_H
 
-#include <iostream>
-#include "dwfqueuesizegetterstest.h"
-#include "dwfqueuepushpoptest.h"
-#include "dwfqueuewaitmanagementtest.h"
+#include <cppunit/extensions/HelperMacros.h>
+#include <cppunit/Portability.h>
+#include "dwfstate.h"
 
-int main(int argc, char* argv[])
+/*! @class DwfQueueWaitManagementTest
+* @brief Unit tests of DwfQueue wait management
+*
+* Inherits from TestFixture
+*
+*/
+class DwfQueueWaitManagementTest : public CPPUNIT_NS::TestFixture
 {
-    // Create the event manager and test controller
-    CPPUNIT_NS::TestResult controller;
+public:
+    CPPUNIT_TEST_SUITE(DwfQueueWaitManagementTest);
+        CPPUNIT_TEST(waitManagementCopy);
+        CPPUNIT_TEST(waitManagementMove);
+    CPPUNIT_TEST_SUITE_END();
 
-    // Add a listener that colllects test result
-    CPPUNIT_NS::TestResultCollector result;
-    controller.addListener(&result);
+public:
+    /*!
+    * @brief Constructor of the DwfQueueWaitManagementTest class
+    *
+    * Does nothing.
+    *
+    */
+    DwfQueueWaitManagementTest();
 
-    // Add a listener that indicates the name of tests as they run
-    CPPUNIT_NS::BriefTestProgressListener progress;
-    controller.addListener(&progress);
+    /*!
+    * @brief Desctructor of the DwfQueueWaitManagementTest class
+    *
+    * Does nothing.
+    *
+    */
+    ~DwfQueueWaitManagementTest();
 
-    // Setup test runner and assemble registered test suites
-    CPPUNIT_NS::TestRunner runner;
-    CPPUNIT_NS::Test* tests = CPPUNIT_NS::TestFactoryRegistry::getRegistry().makeTest();
-    runner.addTest(tests);
+    /*!
+    * @brief Prepare execution environment of every test
+    *
+    * Does nothing.
+    *
+    */
+    void setUp();
 
-    // Select the tests to run based on call arguments
-    std::string test="";
-    if(argc==2)
-    {
-        test=argv[1];
-        std::cout << "Running test : " << test << std::endl;
-    }
-    else
-    {
-        std::cout << "Running all tests" << std::endl;
-    }
+    /*!
+    * @brief Cleanup environment after execution of each test
+    *
+    * Does nothing.
+    *
+    */
+    void tearDown();
 
-    // Run tests
-    try
-    {
-        runner.run(controller, test);
-    }
-    catch(std::exception& e)
-    {
-        std::cout << "Test generated exception : " << std::endl << e.what() << std::endl;
-    }
+    /*!
+    * @brief Check wait management behavior copy version
+    *
+    * 0) Create an int queue.
+    * 1) Spawn a waiting thread and wait for elements.
+    * 2) Disable waiting and check thread exits without any element being pushed.
+    * 3) Try to wait again and check that thread does not wait
+    * 4) Enable waiting and check that an element must be pushed for wait to end.
+    *
+    */
+    void waitManagementCopy();
 
-    // display result
-    CPPUNIT_NS::CompilerOutputter outputter(&result, CPPUNIT_NS::stdCOut());
-    outputter.write();
+    /*!
+    * @brief Check wait management behavior move verion
+    *
+    * 0) Create an unique_ptr<int> queue.
+    * 1) Spawn a waiting thread and wait for elements.
+    * 2) Disable waiting and check thread exits without any element being pushed.
+    * 3) Try to wait again and check that thread does not wait
+    * 4) Enable waiting and check that an element must be pushed for wait to end.
+    *
+    */
+    void waitManagementMove();
+};
 
-    return result.wasSuccessful() ? 0 : 1;
-}
+#endif // DWF_QUEUE_WAIT_MANAGEMENT_TEST_H
 
 //  ______________________________
 // |                              |

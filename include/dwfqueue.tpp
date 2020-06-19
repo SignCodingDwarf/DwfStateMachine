@@ -2,7 +2,7 @@
  * @file dwfqueue.cpp
  * @brief Class defining a thread safe queue.
  * @author SignC0dingDw@rf
- * @date 15 June 2020
+ * @date 18 June 2020
  *
  * Class defining a thread safe size-limited queue.
  *
@@ -77,20 +77,27 @@ namespace DwfContainers
     template<class T>
     const size_t DwfQueue<T>::C_NO_SIZE_LIMIT=0;
 
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                     Constructors and Destructor                    ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
     template<class T>
-    DwfQueue<T>::DwfQueue(size_t max_element_nb) : m_max_element_nb(max_element_nb), m_delete_in_progress(false)
+    DwfQueue<T>::DwfQueue(size_t max_element_nb) : m_max_element_nb(max_element_nb), m_wait_disabled(false)
     {
     }
 
     template<class T>
     DwfQueue<T>::~DwfQueue()
     {
-        std::unique_lock<std::mutex> datalock(m_data_mutex);
-        m_delete_in_progress=true;
-        datalock.unlock();
-        m_control_content.notify_all();
+        disableWait();
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                            Size Getters                            ///
+    ///                                                                    ///
+    /////////////////////////////////////////////////////////////////////////
     template<class T>
     bool DwfQueue<T>::empty() const
     {
@@ -119,6 +126,29 @@ namespace DwfContainers
         }
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                          Wait management                           ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    template<class T>
+    void DwfQueue<T>::disableWait()
+    {
+        m_wait_disabled=true;
+        m_control_content.notify_all(); // For all threads to exit waiting state
+    }
+
+    template<class T>
+    void DwfQueue<T>::enableWait()
+    {
+        m_wait_disabled=false;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                                Push                                ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
     template<class T>
     void DwfQueue<T>::push(const T& element)
     {
@@ -145,13 +175,18 @@ namespace DwfContainers
         m_control_content.notify_one();
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                                Pop                                 ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
     template<class T>
     void DwfQueue<T>::pop(T& element)
     {
         std::unique_lock<std::mutex> datalock(m_data_mutex);
-        if(!m_delete_in_progress) // Do nothing if we are about to delete queue
+        if(!m_wait_disabled) // Do nothing if we disabled wait
         {
-            m_control_content.wait(datalock, [this](){return !m_queue.empty() || m_delete_in_progress;}); // Only exit wait if queue is not empty or if deletion has been requested
+            m_control_content.wait(datalock, [this](){return !m_queue.empty() || m_wait_disabled;}); // Only exit wait if queue is not empty or if deletion has been requested
             element = m_queue.front();
             m_queue.pop();
         }
@@ -161,9 +196,9 @@ namespace DwfContainers
     void DwfQueue<T>::pop(T&& element)
     {
         std::unique_lock<std::mutex> datalock(m_data_mutex);
-        if(!m_delete_in_progress)
+        if(!m_wait_disabled) // Do nothing if we disabled wait
         {
-            m_control_content.wait(datalock, [this](){return !m_queue.empty() || m_delete_in_progress;}); // Only exit wait if queue is not empty or if deletion has been requested
+            m_control_content.wait(datalock, [this](){return !m_queue.empty() || m_wait_disabled;}); // Only exit wait if queue is not empty or if deletion has been requested
             element = std::move(m_queue.front());
             m_queue.pop();
         }

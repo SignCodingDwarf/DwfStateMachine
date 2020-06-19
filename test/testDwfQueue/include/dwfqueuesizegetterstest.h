@@ -1,5 +1,5 @@
 /*!
- * @file dwfstatetest.h
+ * @file dwfqueueziegetterstest.h
  * @brief Class implementing DwfQueue size getters unit tests.
  * @author SignC0dingDw@rf
  * @date 11 June 2020
@@ -77,16 +77,16 @@ If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 #include <cppunit/Portability.h>
 #include "dwfstate.h"
 
-/*! @class DwfSizeGettersTest
+/*! @class DwfQueueSizeGettersTest
 * @brief Unit tests of DwfQueue size getters
 *
 * Inherits from TestFixture
 *
 */
-class DwfSizeGettersTest : public CPPUNIT_NS::TestFixture
+class DwfQueueSizeGettersTest : public CPPUNIT_NS::TestFixture
 {
 public:
-    CPPUNIT_TEST_SUITE(DwfSizeGettersTest);
+    CPPUNIT_TEST_SUITE(DwfQueueSizeGettersTest);
         CPPUNIT_TEST(testEmpty);
         CPPUNIT_TEST(testSize);
         CPPUNIT_TEST(testFullNoLimit);
@@ -95,20 +95,20 @@ public:
 
 public:
     /*!
-    * @brief Constructor of the DwfSizeGettersTest class
+    * @brief Constructor of the DwfQueueSizeGettersTest class
     *
     * Does nothing.
     *
     */
-    DwfSizeGettersTest();
+    DwfQueueSizeGettersTest();
 
     /*!
-    * @brief Desctructor of the DwfSizeGettersTest class
+    * @brief Desctructor of the DwfQueueSizeGettersTest class
     *
     * Does nothing.
     *
     */
-    ~DwfSizeGettersTest();
+    ~DwfQueueSizeGettersTest();
 
     /*!
     * @brief Prepare execution environment of every test

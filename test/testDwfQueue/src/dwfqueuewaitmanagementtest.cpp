@@ -1,14 +1,13 @@
 /*!
- * @file dwfqueuesizegetterstest.cpp
- * @brief Class implementing DwfQueue size getters unit tests.
+ * @file dwfqueuewaitmanagement.cpp
+ * @brief Class implementing DwfQueue wait management unit tests.
  * @author SignC0dingDw@rf
- * @date 11 June 2020
+ * @date 19 June 2020
  *
- * Implementation of class performing DwfQueue size getters unit tests. <br>
+ * Implementation of class performing DwfQueue wait management unit tests. <br>
  * Inherits from TestFixture
  *
  */
-
 
 /*
 MIT License
@@ -71,28 +70,32 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#include "dwfqueuesizegetterstest.h"
+#include "dwfqueuewaitmanagementtest.h"
 #include "dwfqueue.h"
+#include <memory>
+#include <stdexcept>
+#include <thread>
+#include <chrono>
 
-CPPUNIT_TEST_SUITE_REGISTRATION(DwfQueueSizeGettersTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(DwfQueueWaitManagementTest);
 
-DwfQueueSizeGettersTest::DwfQueueSizeGettersTest()
+DwfQueueWaitManagementTest::DwfQueueWaitManagementTest()
 {
 }
 
-DwfQueueSizeGettersTest::~DwfQueueSizeGettersTest()
+DwfQueueWaitManagementTest::~DwfQueueWaitManagementTest()
 {
 }
 
-void DwfQueueSizeGettersTest::setUp()
+void DwfQueueWaitManagementTest::setUp()
 {
 }
 
-void DwfQueueSizeGettersTest::tearDown()
+void DwfQueueWaitManagementTest::tearDown()
 {
 }
 
-void DwfQueueSizeGettersTest::testEmpty()
+void DwfQueueWaitManagementTest::waitManagementCopy()
 {
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
@@ -100,144 +103,155 @@ void DwfQueueSizeGettersTest::testEmpty()
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
     DwfContainers::DwfQueue<int> testQueue;
-
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue is empty at creation", true, testQueue.empty());
-
-    //////////////////////////////////////////////////////////////////////////
-    ///                                                                    ///
-    ///                          1 : Push Element                          ///
-    ///                                                                    ///
-    //////////////////////////////////////////////////////////////////////////
-    // Element pushed
-    testQueue.push(1);
-
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue is not empty if elements are pushed", false, testQueue.empty());
+    std::mutex synchro_mutex;
+    std::condition_variable synchro_cv;
+    bool unblocking_pops_done = false;
+    bool blocking_pop_ready = false;
 
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
-    ///                           2 : Pop Element                          ///
+    ///                       1 : Spawn popper thread                      ///
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
-    // Element popped
-    int popped=0;
-    testQueue.pop(popped);
+    const std::function<void(void)> threadFunction = [&testQueue, &synchro_mutex, &synchro_cv, &unblocking_pops_done, &blocking_pop_ready]()
+    {
+        int popped = 21;
+        testQueue.pop(popped);
 
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue is not empty if all elements are popped", true, testQueue.empty());
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Popped element should not be modified if no elements are received in queue", 21, popped);
+
+        testQueue.pop(popped); // Still doing nothing
+
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Popped element should not be modified if no elements are received in queue", 21, popped);
+
+        // Wait for unblocking waits
+        {
+            std::unique_lock<std::mutex> lk(synchro_mutex);
+            unblocking_pops_done = true;
+            lk.unlock();
+            synchro_cv.notify_one();
+        }
+
+        {
+            std::unique_lock<std::mutex> lk(synchro_mutex);
+            synchro_cv.wait(lk, [&blocking_pop_ready]{return blocking_pop_ready;});
+        }
+
+        testQueue.pop(popped); // now blocking
+
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Blocking pop should exit only if element was pushed", 47, popped);
+    };
+    std::thread readingThread(threadFunction);
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                         2 : Disable Waiting                        ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    testQueue.disableWait();
+
+    {
+        std::unique_lock<std::mutex> lk(synchro_mutex);
+        synchro_cv.wait(lk, [&unblocking_pops_done]{return unblocking_pops_done;});
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                          4 : Enable Waiting                        ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    testQueue.enableWait();
+
+    {
+        std::unique_lock<std::mutex> lk(synchro_mutex);
+        blocking_pop_ready = true;
+        lk.unlock();
+        synchro_cv.notify_one();
+    }
+
+    testQueue.push(47);
+
+    readingThread.join();
 }
 
-void DwfQueueSizeGettersTest::testSize()
+void DwfQueueWaitManagementTest::waitManagementMove()
 {
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
     ///                              0 : Init                              ///
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
-    DwfContainers::DwfQueue<size_t> testQueue;
-
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Initial size is 0", size_t(0), testQueue.size());
+    DwfContainers::DwfQueue< std::unique_ptr<int> > testQueue;
+    std::mutex synchro_mutex;
+    std::condition_variable synchro_cv;
+    bool unblocking_pops_done = false;
+    bool blocking_pop_ready = false;
 
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
-    ///                      1 : Size increase on push                     ///
+    ///                       1 : Spawn popper thread                      ///
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
-    // Push a few elements
-    for(size_t i = 1; i <= 10; ++i)
+    const std::function<void(void)> threadFunction = [&testQueue, &synchro_mutex, &synchro_cv, &unblocking_pops_done, &blocking_pop_ready]()
     {
-        testQueue.push(i);
-        CPPUNIT_ASSERT_EQUAL_MESSAGE("Size is not correctly increased when pushing elements", i, testQueue.size());
+        std::unique_ptr<int> popped(new int(21));
+        testQueue.pop(std::move(popped));
+
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Popped element should not be modified if no elements are received in queue", 21, *popped);
+
+        testQueue.pop(std::move(popped)); // Still doing nothing
+
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Popped element should not be modified if no elements are received in queue", 21, *popped);
+
+        // Wait for unblocking waits
+        {
+            std::unique_lock<std::mutex> lk(synchro_mutex);
+            unblocking_pops_done = true;
+            lk.unlock();
+            synchro_cv.notify_one();
+        }
+
+        {
+            std::unique_lock<std::mutex> lk(synchro_mutex);
+            synchro_cv.wait(lk, [&blocking_pop_ready]{return blocking_pop_ready;});
+        }
+
+        testQueue.pop(std::move(popped)); // now blocking
+
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Blocking pop should exit only if element was pushed", 47, *popped);
+    };
+    std::thread readingThread(threadFunction);
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                         2 : Disable Waiting                        ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    testQueue.disableWait();
+
+    {
+        std::unique_lock<std::mutex> lk(synchro_mutex);
+        synchro_cv.wait(lk, [&unblocking_pops_done]{return unblocking_pops_done;});
     }
 
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
-    ///                       2 : Size decrease on pop                     ///
+    ///                          4 : Enable Waiting                        ///
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
-    // Pop them
-    for(size_t i = 1; i <= 10; ++i)
+    testQueue.enableWait();
+
     {
-        size_t elem;
-        testQueue.pop(elem);
-        CPPUNIT_ASSERT_EQUAL_MESSAGE("Size is not correctly decreased when popping elements", 10-i, testQueue.size());
-    }
-}
-
-void DwfQueueSizeGettersTest::testFullNoLimit()
-{
-    //////////////////////////////////////////////////////////////////////////
-    ///                                                                    ///
-    ///                              0 : Init                              ///
-    ///                                                                    ///
-    //////////////////////////////////////////////////////////////////////////
-    DwfContainers::DwfQueue<int> testQueue;
-
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue is not full at init", false, testQueue.full());
-
-    //////////////////////////////////////////////////////////////////////////
-    ///                                                                    ///
-    ///                           1 : Push a lot                           ///
-    ///                                                                    ///
-    //////////////////////////////////////////////////////////////////////////
-    for(int i=0; i<1000000; ++i)
-    {
-        testQueue.push(i);
-        CPPUNIT_ASSERT_EQUAL_MESSAGE("Unlimited Queue is never full", false, testQueue.full());
+        std::unique_lock<std::mutex> lk(synchro_mutex);
+        blocking_pop_ready = true;
+        lk.unlock();
+        synchro_cv.notify_one();
     }
 
-    //////////////////////////////////////////////////////////////////////////
-    ///                                                                    ///
-    ///          2 : Same with explicit no size limit construction         ///
-    ///                                                                    ///
-    //////////////////////////////////////////////////////////////////////////
-    DwfContainers::DwfQueue<int> testQueue2(DwfContainers::DwfQueue<int>::C_NO_SIZE_LIMIT);
+    std::unique_ptr<int> pushed(new int(47));
+    testQueue.push(std::move(pushed));
 
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue is not full at init", false, testQueue2.full());
-    for(int i=0; i<1000000; ++i)
-    {
-        testQueue2.push(i);
-        CPPUNIT_ASSERT_EQUAL_MESSAGE("Unlimited Queue is never full", false, testQueue2.full());
-    }
-}
-
-void DwfQueueSizeGettersTest::testFullLimit()
-{
-    //////////////////////////////////////////////////////////////////////////
-    ///                                                                    ///
-    ///                              0 : Init                              ///
-    ///                                                                    ///
-    //////////////////////////////////////////////////////////////////////////
-    size_t queueSize=20;
-    DwfContainers::DwfQueue<size_t> testQueue(20);
-
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue is not full at init", false, testQueue.full());
-
-    //////////////////////////////////////////////////////////////////////////
-    ///                                                                    ///
-    ///            1 : Push elements until we reach size limit - 1         ///
-    ///                                                                    ///
-    //////////////////////////////////////////////////////////////////////////
-    for(size_t i=1; i<=queueSize-1; ++i)
-    {
-        testQueue.push(i);
-        CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue is not full till max size is reached", false, testQueue.full());
-    }
-
-    //////////////////////////////////////////////////////////////////////////
-    ///                                                                    ///
-    ///                  2 : Push element to make queue full               ///
-    ///                                                                    ///
-    //////////////////////////////////////////////////////////////////////////
-    testQueue.push(42);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue is now full", true, testQueue.full());
-
-    //////////////////////////////////////////////////////////////////////////
-    ///                                                                    ///
-    ///                            3 : Pop element                         ///
-    ///                                                                    ///
-    //////////////////////////////////////////////////////////////////////////
-    size_t elem=0;
-    testQueue.pop(elem);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("popping element makes queue no longer full", false, testQueue.full());
+    readingThread.join();
 }
 
 //  ______________________________

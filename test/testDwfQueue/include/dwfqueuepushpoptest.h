@@ -76,16 +76,16 @@ If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/Portability.h>
 
-/*! @class DwfSizePushPopTest
+/*! @class DwfQueuePushPopTest
 * @brief Unit tests of DwfQueue push and pop
 *
 * Inherits from TestFixture
 *
 */
-class DwfSizePushPopTest : public CPPUNIT_NS::TestFixture
+class DwfQueuePushPopTest : public CPPUNIT_NS::TestFixture
 {
 public:
-    CPPUNIT_TEST_SUITE(DwfSizePushPopTest);
+    CPPUNIT_TEST_SUITE(DwfQueuePushPopTest);
         CPPUNIT_TEST(testPushPopCopy);
         CPPUNIT_TEST(testPushPopMove);
         CPPUNIT_TEST(testPushPopCopyFull);
@@ -96,20 +96,20 @@ public:
 
 public:
     /*!
-    * @brief Constructor of the DwfSizePushPopTest class
+    * @brief Constructor of the DwfQueuePushPopTest class
     *
     * Does nothing.
     *
     */
-    DwfSizePushPopTest();
+    DwfQueuePushPopTest();
 
     /*!
-    * @brief Desctructor of the DwfSizePushPopTest class
+    * @brief Desctructor of the DwfQueuePushPopTest class
     *
     * Does nothing.
     *
     */
-    ~DwfSizePushPopTest();
+    ~DwfQueuePushPopTest();
 
     /*!
     * @brief Prepare execution environment of every test

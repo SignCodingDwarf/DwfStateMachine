@@ -2,7 +2,7 @@
  * @file dwfqueue.h
  * @brief Class defining a thread safe queue.
  * @author SignC0dingDw@rf
- * @date 15 June 2020
+ * @date 18 June 2020
  *
  * Class defining a thread safe size-limited queue.
  *
@@ -76,6 +76,7 @@ If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 #include <cstdint>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 /*!
 * @namespace DwfContainers
@@ -147,10 +148,31 @@ namespace DwfContainers
         * @return true queue is full, false otherwise
         *
         * Const method
-        * If the queue is not size limited, this method always returns false;
+        * If the queue is not size limited, this method always returns false
         *
         */
         bool full() const;
+
+        //////////////////////////////////////////////////////////////////////////
+        ///                                                                    ///
+        ///                          Wait management                           ///
+        ///                                                                    ///
+        //////////////////////////////////////////////////////////////////////////
+        /*!
+        * @brief Disable wait of elements in queue
+        *
+        * Disable wait for queue to contain element in pop method.
+        * Also unlocks all waiting threads.
+        * Especially used during queue desctruction
+        *
+        */
+        void disableWait();
+
+        /*!
+        * @brief Enable wait for elements in queue
+        *
+        */
+        void enableWait();
 
         //////////////////////////////////////////////////////////////////////////
         ///                                                                    ///
@@ -211,7 +233,7 @@ namespace DwfContainers
 
         std::condition_variable m_control_content; /*!< Condition variable used to wait for data in the queue.*/
 
-        bool m_delete_in_progress; /*!< Flag indicating that queue deletion has been required. All waiting thread must be notified and no thread can wait any longer. */
+        std::atomic<bool> m_wait_disabled; /*!< Flag indicating that waiting for elements is disabled (ex: when queue is deleted). All waiting thread must be notified and no thread can wait any longer. */
     };
 }
 

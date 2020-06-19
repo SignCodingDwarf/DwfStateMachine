@@ -77,25 +77,25 @@ If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 #include <thread>
 #include <chrono>
 
-CPPUNIT_TEST_SUITE_REGISTRATION(DwfSizePushPopTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(DwfQueuePushPopTest);
 
-DwfSizePushPopTest::DwfSizePushPopTest()
+DwfQueuePushPopTest::DwfQueuePushPopTest()
 {
 }
 
-DwfSizePushPopTest::~DwfSizePushPopTest()
+DwfQueuePushPopTest::~DwfQueuePushPopTest()
 {
 }
 
-void DwfSizePushPopTest::setUp()
+void DwfQueuePushPopTest::setUp()
 {
 }
 
-void DwfSizePushPopTest::tearDown()
+void DwfQueuePushPopTest::tearDown()
 {
 }
 
-void DwfSizePushPopTest::testPushPopCopy()
+void DwfQueuePushPopTest::testPushPopCopy()
 {
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
@@ -129,7 +129,7 @@ void DwfSizePushPopTest::testPushPopCopy()
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue should be empty if all elements are popped", true, testQueue.empty());
 }
 
-void DwfSizePushPopTest::testPushPopMove()
+void DwfQueuePushPopTest::testPushPopMove()
 {
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
@@ -170,7 +170,7 @@ void DwfSizePushPopTest::testPushPopMove()
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue should be empty if all elements are popped", true, testQueue.empty());
 }
 
-void DwfSizePushPopTest::testPushPopCopyFull()
+void DwfQueuePushPopTest::testPushPopCopyFull()
 {
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
@@ -206,7 +206,7 @@ void DwfSizePushPopTest::testPushPopCopyFull()
     CPPUNIT_ASSERT_NO_THROW_MESSAGE("After popping push should be available again", testQueue.push(1));
 }
 
-void DwfSizePushPopTest::testPushPopMoveFull()
+void DwfQueuePushPopTest::testPushPopMoveFull()
 {
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
@@ -244,7 +244,7 @@ void DwfSizePushPopTest::testPushPopMoveFull()
     CPPUNIT_ASSERT_NO_THROW_MESSAGE("After popping push should be available again", testQueue.push(std::move(popped)));
 }
 
-void DwfSizePushPopTest::testPopBlockingCopy()
+void DwfQueuePushPopTest::testPopBlockingCopy()
 {
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
@@ -283,7 +283,7 @@ void DwfSizePushPopTest::testPopBlockingCopy()
     readingThread.join();
 }
 
-void DwfSizePushPopTest::testPopBlockingMove()
+void DwfQueuePushPopTest::testPopBlockingMove()
 {
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
