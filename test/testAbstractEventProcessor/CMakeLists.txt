@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.5)
 
-set(PROJECT_NAME "DwfStateMachine")
+set(PROJECT_NAME "testAbstractEventProcessor")
 
 project(${PROJECT_NAME} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_LIST_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_LIST_DIR})
+
+### CPPUnit content
+find_path(cppunit_include_dir cppunit/TestCase.h /usr/local/include /usr/include)
+find_library(cppunit_library cppunit ${CPPUNIT_INCLUDE_DIR}/../lib /usr/local/lib /usr/lib)
 
 ### Application Files Setup ###
 # Locate all source files
@@ -23,7 +27,8 @@ file(
 )
 
 # Add all header files
-include_directories(include)
+include_directories(include ${cppunit_include_dir})
+include_directories(${CMAKE_CURRENT_LIST_DIR}/../../include)
 
 # Locate all header files
 file(
@@ -37,14 +42,11 @@ file(
         include/*.hpp
 
 )
-set(header_install ${header_files})
 
-# Generate dynamic library
-add_library(
+# Generate binary
+add_executable(
 
         ${PROJECT_NAME}
-
-        SHARED
 
         ${source_files}
 
@@ -53,25 +55,9 @@ add_library(
 
 target_link_libraries(
 
-        ${PROJECT_NAME}
+	${PROJECT_NAME}
 
-        pthread
+	${cppunit_library}
+	
+	DwfStateMachine
 )
-
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-
-# List test directories
-file(
-
-        GLOB
-
-        tests_folders
-
-        ${CMAKE_CURRENT_LIST_DIR}/test/*
-
-)
-
-# Build all tests
-foreach(folder ${tests_folders})
-    add_subdirectory(${folder})
-endforeach(folder)
