@@ -1,8 +1,8 @@
 /*!
- * @file dwfqueue.cpp
+ * @file dwfqueue.tpp
  * @brief Class defining a thread safe queue.
  * @author SignC0dingDw@rf
- * @date 18 June 2020
+ * @date 11 July 2020
  *
  * Class defining a thread safe size-limited queue.
  *
@@ -187,20 +187,11 @@ namespace DwfContainers
         if(!m_wait_disabled) // Do nothing if we disabled wait
         {
             m_control_content.wait(datalock, [this](){return !m_queue.empty() || m_wait_disabled;}); // Only exit wait if queue is not empty or if deletion has been requested
-            element = m_queue.front();
-            m_queue.pop();
-        }
-    }
-
-    template<class T>
-    void DwfQueue<T>::pop(T&& element)
-    {
-        std::unique_lock<std::mutex> datalock(m_data_mutex);
-        if(!m_wait_disabled) // Do nothing if we disabled wait
-        {
-            m_control_content.wait(datalock, [this](){return !m_queue.empty() || m_wait_disabled;}); // Only exit wait if queue is not empty or if deletion has been requested
-            element = std::move(m_queue.front());
-            m_queue.pop();
+            if(! m_wait_disabled) // Only try to get element if we are allowed to wait for elements
+            {
+                element = std::move(m_queue.front());
+                m_queue.pop();
+            }
         }
     }
 }

@@ -2,7 +2,7 @@
  * @file dwfqueuepushpoptest.cpp
  * @brief Class implementing DwfQueue push and pop unit tests.
  * @author SignC0dingDw@rf
- * @date 15 June 2020
+ * @date 11 July 2020
  *
  * Implementation of class performing DwfQueue push and pop unit tests. <br>
  * Inherits from TestFixture
@@ -164,7 +164,7 @@ void DwfQueuePushPopTest::testPushPopMove()
     {
         // Element popped
         std::unique_ptr<int> popped;
-        testQueue.pop(std::move(popped));
+        testQueue.pop(popped);
         CPPUNIT_ASSERT_EQUAL_MESSAGE("Elements not extracted in order of push", 4*i, *popped);
     }
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue should be empty if all elements are popped", true, testQueue.empty());
@@ -240,7 +240,7 @@ void DwfQueuePushPopTest::testPushPopMoveFull()
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
     std::unique_ptr<int> popped;
-    testQueue.pop(std::move(popped));
+    testQueue.pop(popped);
     CPPUNIT_ASSERT_NO_THROW_MESSAGE("After popping push should be available again", testQueue.push(std::move(popped)));
 }
 
@@ -302,7 +302,7 @@ void DwfQueuePushPopTest::testPopBlockingMove()
         for(int i=1; i <= 10; ++i)
         {
             std::unique_ptr<int> popped;
-            testQueue.pop(std::move(popped));
+            testQueue.pop(popped);
             CPPUNIT_ASSERT_EQUAL_MESSAGE("Pop should get elements in order", i*10, *popped);
         }
     };

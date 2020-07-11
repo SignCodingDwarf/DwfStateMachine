@@ -2,7 +2,7 @@
  * @file dwfqueue.h
  * @brief Class defining a thread safe queue.
  * @author SignC0dingDw@rf
- * @date 18 June 2020
+ * @date 11 July 2020
  *
  * Class defining a thread safe size-limited queue.
  *
@@ -213,16 +213,6 @@ namespace DwfContainers
         *
         */
         void pop(T& element);
-
-        /*!
-        * @brief Pop an element using move semantics
-        * @param element : Reference to the element to move queue head to
-        *
-        * Wait for an element to be available in queue then move it to argument and remove it from queue.
-        * Calling to pop locks current thread until an element has been pushed to queue.
-        *
-        */
-        void pop(T&& element);
 
     private:
         std::queue<T> m_queue; /*!< Elements container.*/

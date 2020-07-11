@@ -2,7 +2,7 @@
  * @file dwfqueuewaitmanagement.h
  * @brief Class implementing DwfQueue wait management unit tests.
  * @author SignC0dingDw@rf
- * @date 19 June 2020
+ * @date 11 July 2020
  *
  * Definition of class performing DwfQueue wait management unit tests. <br>
  * Inherits from TestFixture
@@ -89,6 +89,7 @@ public:
     CPPUNIT_TEST_SUITE(DwfQueueWaitManagementTest);
         CPPUNIT_TEST(waitManagementCopy);
         CPPUNIT_TEST(waitManagementMove);
+        CPPUNIT_TEST(waitManagementDeletion);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -147,6 +148,19 @@ public:
     *
     */
     void waitManagementMove();
+
+    /*!
+    * @brief Check wait management behavior when deleting queue
+    *
+    * 0) Create a pointer on unique_ptr<int> queue.
+    * 1) Spawn a waiting thread and wait for elements.
+    * 2) Delete existing queue.
+    * 3) Join waiting thread
+    *
+    * No test is really performed, the aim is simply to check no memory error are produced when deleting queue
+    *
+    */
+    void waitManagementDeletion();
 };
 
 #endif // DWF_QUEUE_WAIT_MANAGEMENT_TEST_H

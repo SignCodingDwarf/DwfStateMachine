@@ -2,7 +2,7 @@
  * @file dwfqueuewaitmanagement.cpp
  * @brief Class implementing DwfQueue wait management unit tests.
  * @author SignC0dingDw@rf
- * @date 19 June 2020
+ * @date 11 July 2020
  *
  * Implementation of class performing DwfQueue wait management unit tests. <br>
  * Inherits from TestFixture
@@ -195,11 +195,11 @@ void DwfQueueWaitManagementTest::waitManagementMove()
     const std::function<void(void)> threadFunction = [&testQueue, &synchro_mutex, &synchro_cv, &unblocking_pops_done, &blocking_pop_ready]()
     {
         std::unique_ptr<int> popped(new int(21));
-        testQueue.pop(std::move(popped));
+        testQueue.pop(popped);
 
         CPPUNIT_ASSERT_EQUAL_MESSAGE("Popped element should not be modified if no elements are received in queue", 21, *popped);
 
-        testQueue.pop(std::move(popped)); // Still doing nothing
+        testQueue.pop(popped); // Still doing nothing
 
         CPPUNIT_ASSERT_EQUAL_MESSAGE("Popped element should not be modified if no elements are received in queue", 21, *popped);
 
@@ -216,7 +216,7 @@ void DwfQueueWaitManagementTest::waitManagementMove()
             synchro_cv.wait(lk, [&blocking_pop_ready]{return blocking_pop_ready;});
         }
 
-        testQueue.pop(std::move(popped)); // now blocking
+        testQueue.pop(popped); // now blocking
 
         CPPUNIT_ASSERT_EQUAL_MESSAGE("Blocking pop should exit only if element was pushed", 47, *popped);
     };
@@ -251,6 +251,43 @@ void DwfQueueWaitManagementTest::waitManagementMove()
     std::unique_ptr<int> pushed(new int(47));
     testQueue.push(std::move(pushed));
 
+    readingThread.join();
+}
+
+void DwfQueueWaitManagementTest::waitManagementDeletion()
+{
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                              0 : Init                              ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    DwfContainers::DwfQueue< std::unique_ptr<int> >* w_queue = new DwfContainers::DwfQueue< std::unique_ptr<int> >();
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                       1 : Spawn popper thread                      ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    const std::function<void(void)> threadFunction = [&w_queue]()
+    {
+        std::unique_ptr<int> popped;
+        w_queue->pop(popped);
+    };
+    std::thread readingThread(threadFunction);
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                           2 : Delete Queue                         ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    std::this_thread::sleep_for (std::chrono::milliseconds(100)); // Wait a little bit to make sure we are waiting for event
+    delete w_queue;
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                           3 : Join Thread                          ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
     readingThread.join();
 }
 
