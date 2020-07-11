@@ -2,7 +2,7 @@
  * @file dwfstatetest.cpp
  * @brief Class implementing DwfState unit tests.
  * @author SignC0dingDw@rf
- * @date 27 May 2020
+ * @date 11 July 2020
  *
  * Implementation of class performing DwfState unit tests. <br>
  * Inherits from TestFixture
@@ -104,6 +104,14 @@ void DwfStateTest::testDifferent()
     DwfStateMachine::DwfState stB(2);
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE("State with different id should be different", false, stA == stB);
+}
+
+void DwfStateTest::testGetId()
+{
+    DwfStateMachine::StateID id(42);
+    DwfStateMachine::DwfState st(id);
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("We should get state id", id, st.getId());
 }
 
 //  ______________________________

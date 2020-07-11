@@ -2,7 +2,7 @@
  * @file dwfeventtest.cpp
  * @brief Class implementing DwfEvent unit tests.
  * @author SignC0dingDw@rf
- * @date 26 May 2020
+ * @date 11 July 2020
  *
  * Implementation of class performing DwfEvent unit tests. <br>
  * Inherits from TestFixture
@@ -104,6 +104,14 @@ void DwfEventTest::testDifferent()
     EventSystem::DwfEvent evB(2);
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Event with different id should be different", false, evA == evB);
+}
+
+void DwfEventTest::testGetId()
+{
+    EventSystem::EventID id(42);
+    EventSystem::DwfEvent ev(id);
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("We should get event id", id, ev.getId());
 }
 
 //  ______________________________

@@ -2,7 +2,7 @@
  * @file identifiedelement.h
  * @brief Class representing elements that can be compared using an identifier.
  * @author SignC0dingDw@rf
- * @date 26 May 2020
+ * @date 11 July 2020
  *
  * Template class representing any element that is represented by an id. <br>
  * Two elements are considered identical if their id is identical regardless of any payload they may carry. <br>
@@ -106,6 +106,15 @@ namespace DwfCommon {
         *
         */
         bool operator==(const IdentifiedElement<T>& ref);
+
+        /*!
+        * @brief Get element ID
+        * @return Id of the element
+        *
+        * Constant method
+        *
+        */
+        T getId() const;
 
     private:
         T m_id; /*!< Id of the element. */

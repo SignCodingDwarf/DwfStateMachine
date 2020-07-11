@@ -2,7 +2,7 @@
  * @file dwfstatetest.h
  * @brief Class implementing DwfState unit tests.
  * @author SignC0dingDw@rf
- * @date 27 May 2020
+ * @date 11 July 2020
  *
  * Definition of class performing DwfState unit tests. <br>
  * Inherits from TestFixture
@@ -89,6 +89,7 @@ public:
     CPPUNIT_TEST_SUITE(DwfStateTest);
         CPPUNIT_TEST(testIdentical);
         CPPUNIT_TEST(testDifferent);
+        CPPUNIT_TEST(testGetId);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -141,6 +142,15 @@ public:
     *
     */
     void testDifferent();
+
+    /*!
+    * @brief Check getId behavior
+    *
+    * Creates a state with a given id.
+    * Check we get the relevant id from getId.
+    *
+    */
+    void testGetId();
 };
 
 #endif // DWF_STATE_TEST_H
