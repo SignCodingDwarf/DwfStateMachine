@@ -2,7 +2,7 @@
  * @file dwfeventtest.h
  * @brief Class implementing DwfEvent unit tests.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 03 August 2020
  *
  * Definition of class performing DwfEvent unit tests. <br>
  * Inherits from TestFixture
@@ -90,6 +90,7 @@ public:
         CPPUNIT_TEST(testIdentical);
         CPPUNIT_TEST(testDifferent);
         CPPUNIT_TEST(testGetId);
+        CPPUNIT_TEST(testHash);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -151,6 +152,15 @@ public:
     *
     */
     void testGetId();
+
+    /*!
+    * @brief Check EventHasher behavior
+    *
+    * Creates an event with a given id.
+    * Check the hash of the event corresponds to the hash of the id.
+    *
+    */
+    void testHash();
 };
 
 #endif // DWF_EVENT_TEST_H

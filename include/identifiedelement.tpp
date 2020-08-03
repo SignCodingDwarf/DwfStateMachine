@@ -2,7 +2,7 @@
  * @file identifiedelement.tpp
  * @brief Class representing elements that can be compared using an identifier.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 24 July 2020
  *
  * Implementation of a template class representing any element that is represented by an id. <br>
  * Two elements are considered identical if their id is identical regardless of any payload they may carry. <br>
@@ -72,7 +72,7 @@ namespace DwfCommon
     }
 
     template<class T>
-    bool IdentifiedElement<T>::operator==(const IdentifiedElement<T>& ref)
+    bool IdentifiedElement<T>::operator==(const IdentifiedElement<T>& ref) const
     {
         return (m_id == ref.m_id);
     }

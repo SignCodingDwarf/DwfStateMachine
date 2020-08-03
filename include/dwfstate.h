@@ -2,7 +2,7 @@
  * @file dwfstate.h
  * @brief Class representing states.
  * @author SignC0dingDw@rf
- * @date 27 May 2020
+ * @date 24 July 2020
  *
  * Class representing a state identified by an unique StateID.
  * Currently StateID is a simple uint32_t.
@@ -92,6 +92,11 @@ namespace DwfStateMachine
     *  @brief State is an identified element with StateID as id type
     */
     using DwfState = DwfCommon::IdentifiedElement<StateID>;
+
+    /*! @typedef StateHasher
+    *  @brief Hasher of a DwfState (performs hash on a StateID)
+    */
+    using StateHasher = DwfCommon::ElementHasher<StateID>;
 }
 #endif // DWF_STATE_H
 

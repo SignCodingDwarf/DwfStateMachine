@@ -2,7 +2,7 @@
  * @file identifiedelement.h
  * @brief Class representing elements that can be compared using an identifier.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 24 July 2020
  *
  * Template class representing any element that is represented by an id. <br>
  * Two elements are considered identical if their id is identical regardless of any payload they may carry. <br>
@@ -74,6 +74,8 @@ If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 #ifndef IDENTIFIED_ELEMENT_H
 #define IDENTIFIED_ELEMENT_H
 
+#include <functional>
+
 /*!
 * @namespace DwfCommon
 * @brief A namespace used to regroup all elements common to dwarven projects
@@ -105,7 +107,7 @@ namespace DwfCommon {
         * Overload of comparison operator. Only compares IDs to determine element equality.
         *
         */
-        bool operator==(const IdentifiedElement<T>& ref);
+        bool operator==(const IdentifiedElement<T>& ref) const;
 
         /*!
         * @brief Get element ID
@@ -118,6 +120,31 @@ namespace DwfCommon {
 
     private:
         T m_id; /*!< Id of the element. */
+    };
+
+    /*! @class ElementHasher
+    * @brief Class allowing to compute hash of an IdentifiedElement.
+    * @tparam T : type of the identifier. std::hash<T> should be defined.
+    *
+    * Compute hash of an IdentifiedElement to use it in unordered containers.
+    * Hash is computed only on the element id.
+    *
+    */
+    template<class T>
+    struct ElementHasher
+    {
+        /*!
+        * @brief Overload of operator()
+        * @param element : element to be hashed
+        * @return Hash of the IdentifiedElement
+        *
+        * Constant method
+        *
+        */
+        std::size_t operator()(const IdentifiedElement<T>& element) const
+        {
+            return std::hash<T>()(element.getId());
+        }
     };
 }
 

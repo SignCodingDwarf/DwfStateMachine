@@ -2,7 +2,7 @@
  * @file dwfeventtest.cpp
  * @brief Class implementing DwfEvent unit tests.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 03 August 2020
  *
  * Implementation of class performing DwfEvent unit tests. <br>
  * Inherits from TestFixture
@@ -112,6 +112,13 @@ void DwfEventTest::testGetId()
     EventSystem::DwfEvent ev(id);
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE("We should get event id", id, ev.getId());
+}
+
+void DwfEventTest::testHash()
+{
+    EventSystem::EventID id(42);
+    EventSystem::DwfEvent ev(id);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Hash of event should match hash of id", std::hash<EventSystem::EventID>()(id), EventSystem::EventHasher()(ev));
 }
 
 //  ______________________________

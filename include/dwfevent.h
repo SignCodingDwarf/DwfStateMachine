@@ -2,7 +2,7 @@
  * @file dwfevent.h
  * @brief Class representing events.
  * @author SignC0dingDw@rf
- * @date 26 May 2020
+ * @date 24 July 2020
  *
  * Class representing an event identified by an unique EventID.
  * Currently EventID is a unique uint32_t.
@@ -92,6 +92,11 @@ namespace EventSystem
     *  @brief Event is an identified element with EventID as id type
     */
     using DwfEvent = DwfCommon::IdentifiedElement<EventID>;
+
+    /*! @typedef EventHasher
+    *  @brief Hasher of a DwfEvent (performs hash on an EventID)
+    */
+    using EventHasher = DwfCommon::ElementHasher<EventID>;
 }
 #endif // DWF_EVENT_H
 

@@ -2,7 +2,7 @@
  * @file dwfstatetest.cpp
  * @brief Class implementing DwfState unit tests.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 03 August 2020
  *
  * Implementation of class performing DwfState unit tests. <br>
  * Inherits from TestFixture
@@ -112,6 +112,13 @@ void DwfStateTest::testGetId()
     DwfStateMachine::DwfState st(id);
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE("We should get state id", id, st.getId());
+}
+
+void DwfStateTest::testHash()
+{
+    DwfStateMachine::StateID id(42);
+    DwfStateMachine::DwfState st(id);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Hash of state should match hash of id", std::hash<DwfStateMachine::StateID>()(id), DwfStateMachine::StateHasher()(st));
 }
 
 //  ______________________________
