@@ -2,7 +2,7 @@
  * @file abstracteventprocessortest.cpp
  * @brief Class implementing AbstractEventProcessor unit tests.
  * @author SignC0dingDw@rf
- * @date 12 July 2020
+ * @date 08 August 2020
  *
  * Implementation of class performing AbstractEventProcessor unit tests. <br>
  * Inherits from TestFixture
@@ -101,6 +101,7 @@ void AbstractEventProcessorTest::testDeletion()
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
     TestEventProcessor* ev_processor = new TestEventProcessor();
+    ev_processor->start();
 
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
@@ -144,20 +145,41 @@ void AbstractEventProcessorTest::testPush()
 
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
-    ///                       2 : Check event number                       ///
+    ///                             2 : Start                              ///
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("All events should have been processed", event_nb, ev_processor.getProcessedEventsNumber());
+    ev_processor.start();
 
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
-    ///                        3 : Check event order                       ///
+    ///                              3 : Push                              ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    for(EventSystem::EventID i=event_nb+1; i<=2*event_nb; ++i)
+    {
+        std::unique_ptr<EventSystem::DwfEvent> ev(new EventSystem::DwfEvent(i));
+        ev_processor.pushEvent(std::move(ev));
+    }
+
+    // Wait a little bit for events to be processed
+    std::this_thread::sleep_for (std::chrono::milliseconds(100));
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                       4 : Check event number                       ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("All events after start should have been processed", event_nb, ev_processor.getProcessedEventsNumber());
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                        5 : Check event order                       ///
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
     std::vector<EventSystem::EventID> received_ids = ev_processor.getReceivedIds();
-    for(uint32_t i=1; i<=event_nb; ++i)
+    for(uint32_t i=1; i<=received_ids.size(); ++i)
     {
-        CPPUNIT_ASSERT_EQUAL_MESSAGE("Events have not been received in order", i, received_ids[i-1]);
+        CPPUNIT_ASSERT_EQUAL_MESSAGE("Events have not been received in order", i+event_nb, received_ids[i-1]);
     }
 }
 
@@ -172,7 +194,25 @@ void AbstractEventProcessorTest::testSizeLimit()
 
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
-    ///                              1 : Push                              ///
+    ///                              2 : Push                              ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    for(EventSystem::EventID i=1; i<=7; ++i)
+    {
+        std::unique_ptr<EventSystem::DwfEvent> ev(new EventSystem::DwfEvent(i));
+        CPPUNIT_ASSERT_NO_THROW_MESSAGE("Pushing events when not started causes no exception because events are dropped",ev_processor.pushEvent(std::move(ev)));
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                             2 : Start                              ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    ev_processor.start();
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                              3 : Push                              ///
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
     for(EventSystem::EventID i=1; i<=5; ++i)
@@ -183,7 +223,7 @@ void AbstractEventProcessorTest::testSizeLimit()
 
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///
-    ///                        2 : Push on full queue                      ///
+    ///                        4 : Push on full queue                      ///
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
     std::unique_ptr<EventSystem::DwfEvent> ev(new EventSystem::DwfEvent(12));
@@ -199,6 +239,7 @@ void AbstractEventProcessorTest::testInheritance()
     ///                                                                    ///
     //////////////////////////////////////////////////////////////////////////
     TestEventProcessor ev_processor;
+    ev_processor.start();
 
     //////////////////////////////////////////////////////////////////////////
     ///                                                                    ///

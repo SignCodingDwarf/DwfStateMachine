@@ -2,7 +2,7 @@
  * @file abstracteventprocessor.h
  * @brief Class defining common fonctionnlaties to an event processor.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 08 August 2020
  *
  * Class implementing an event processor i.e. a class receiving events in a fifo and processing them in reception order.
  * Abstract class. Should be derived to implement process_event method to define application specific event processing actions.
@@ -89,6 +89,7 @@ namespace EventSystem
     * @brief Class defining common fonctionnlaties to an event processor.
     *
     * Class implementing an event processor i.e. a class receiving events in a fifo and processing them in reception order.
+    * Event processing starts once method start() has been called. Before that, all received events are dropped.
     * Abstract class. Should be derived to implement process_event method to define application specific event processing actions.
     *
     */
@@ -100,7 +101,6 @@ namespace EventSystem
         * @param max_element_nb : Max number of elements that can be stored in event queue. Default indicates no size limitation.
         *
         * Constructor of the AbstractEventProcessor class setting event queue size limitation.
-        * Spawns event processing thread.
         *
         */
         AbstractEventProcessor(size_t max_element_nb = DwfContainers::DwfQueue< std::unique_ptr<DwfEvent> >::C_NO_SIZE_LIMIT);
@@ -123,6 +123,14 @@ namespace EventSystem
         */
         void pushEvent(std::unique_ptr<DwfEvent>&& event);
 
+        /*!
+         * @brief Start processing events
+         *
+         * Spawn the event procesing thread and allows events to be pushed in event queue.
+         *
+         */
+        void start();
+
     protected:
         /*!
         * @brief Process received event
@@ -136,7 +144,7 @@ namespace EventSystem
     private:
         DwfContainers::DwfQueue< std::unique_ptr<DwfEvent> > m_event_queue; /*!< Events queue.*/
 
-        std::atomic<bool> m_exit_wait_process; /*!< Flag indicating whether processor deletion is taking place.*/
+        std::atomic<bool> m_start_event_processing; /*!< Flag indicating whether event are being processed.*/
 
         std::thread m_event_processing_thread; /*!< Thread processing events on reception.*/
 

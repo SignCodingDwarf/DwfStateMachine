@@ -2,7 +2,7 @@
  * @file abstracteventprocessor.cpp
  * @brief Class defining common fonctionnlaties to an event processor.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 08 August 2020
  *
  * Class implementing an event processor i.e. a class receiving events in a fifo and processing them in reception order.
  * Abstract class. Should be derived to implement process_event method to define application specific event processing actions.
@@ -74,13 +74,13 @@ If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 
 namespace EventSystem
 {
-    AbstractEventProcessor::AbstractEventProcessor(size_t max_element_nb): m_event_queue(max_element_nb), m_exit_wait_process(false), m_event_processing_thread([this]{waitEvents();})
+    AbstractEventProcessor::AbstractEventProcessor(size_t max_element_nb): m_event_queue(max_element_nb), m_start_event_processing(false), m_event_processing_thread()
     {
     }
 
     AbstractEventProcessor::~AbstractEventProcessor()
     {
-        m_exit_wait_process = true;
+        m_start_event_processing = false;
         m_event_queue.disableWait(); // Force exit of queue waiting thread to unlock waiter thread
 
         if(m_event_processing_thread.joinable())
@@ -91,12 +91,22 @@ namespace EventSystem
 
     void AbstractEventProcessor::pushEvent(std::unique_ptr<DwfEvent>&& event)
     {
-        m_event_queue.push(std::move(event));
+        if(m_start_event_processing) // Drop received events while  processing is not started
+        {
+            m_event_queue.push(std::move(event));
+        }
     }
+
+    void AbstractEventProcessor::start()
+    {
+        m_start_event_processing = true; // Activate event procesing flag
+        m_event_processing_thread = std::thread([this]{waitEvents();});
+    }
+
 
     void AbstractEventProcessor::waitEvents()
     {
-        while(!m_exit_wait_process) // Do wait until exit has been requested
+        while(m_start_event_processing) // Do wait until exit has been requested
         {
             std::unique_ptr<DwfEvent> element; // Init to nullptr
             m_event_queue.pop(element); // Wait for events

@@ -2,7 +2,7 @@
  * @file abstracteventprocessortest.h
  * @brief Class implementing AbstractEventProcessor unit tests.
  * @author SignC0dingDw@rf
- * @date 12 July 2020
+ * @date 08 August 2020
  *
  * Definition of class performing AbstractEventProcessor unit tests. <br>
  * Inherits from TestFixture
@@ -128,7 +128,7 @@ public:
     /*!
     * @brief Check deletion
     *
-    * 0) Create pointer to TestEventProcessor.
+    * 0) Create pointer to TestEventProcessor. Start event processing.
     * 1) Wait a little bit to make sure we are waiting for events.
     * 2) Force Deletion.
     *
@@ -141,9 +141,11 @@ public:
     * @brief Check pushing events
     *
     * 0) Create TestEventProcessor.
-    * 1) Push events with different IDs.
-    * 2) Check number of events received.
-    * 3) Check order of IDs received.
+    * 1) Push a few events with different IDs.
+    * 2) Start event processing.
+    * 3) Push a few other events with different IDs.
+    * 4) Check number of events received.
+    * 5) Check order of IDs received.
     *
     */
     void testPush();
@@ -152,8 +154,10 @@ public:
     * @brief Check pushing events behavior if event queue has size limitation
     *
     * 0) Create TestEventProcessor with queue of size N and very long computation time.
-    * 1) Push N events with different IDs. Check no exception is raised.
-    * 2) Push event and check exception is raised.
+    * 1) Push N+1 events with different IDs. Check no exception is raised.
+    * 2) Start event processor
+    * 3) Push N events with different IDs. Check no exception is raised.
+    * 4) Push event and check exception is raised.
     *
     */
     void testSizeLimit();
@@ -161,7 +165,7 @@ public:
     /*!
     * @brief Check processing events behavior with subtypes of Dwf::Events
     *
-    * 0) Create TestEventProcessor
+    * 0) Create TestEventProcessor and start it.
     * 1) Push a few IntEvents and StrEvents
     * 2) Check IntEvents content
     * 3) Check StrEvents content
