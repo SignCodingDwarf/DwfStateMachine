@@ -1,15 +1,17 @@
 /*!
- * @file abstractstatemachine.cpp
- * @brief Class representing event based state machine.
+ * @file abstractperiodicstatemachine.cpp
+ * @brief Class representing event based state machine with periodic execution of computation.
  * @author SignC0dingDw@rf
- * @date 02 October 2020
+ * @date 03 October 2020
  *
- * Class representing an event based state machine.
- * In such state machines, all computations are performed when receiving an event.
- * Inherits from AbstractEventProcessor.
+ * Class representing an event based state machine with periodic execution of computation.
+ * In such state machines, computations and state changes can be performed either when receiving an event or periodically.
+ * Periodic execution is based on a timer that must be explicitely started.
+ * Inherits from AbstractStateMachine.
  * Abstract class.
  *
  */
+
 /*
 MIT License
 
@@ -71,20 +73,19 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#include "abstractstatemachine.h"
+#include "abstractperiodicstatemachine.h"
 
 namespace DwfStateMachine
 {
-    AbstractStateMachine::AbstractStateMachine(DwfState initial_state, size_t max_element_nb) : EventSystem::AbstractEventProcessor(max_element_nb), m_current_state(initial_state)
+    AbstractPeriodicStateMachine::~AbstractPeriodicStateMachine()
     {
     }
 
-    AbstractStateMachine::~AbstractStateMachine()
+    void AbstractPeriodicStateMachine::setupAndStart()
     {
-    }
+        // Setup state function map
+        setupStateFunctionMap();
 
-    void AbstractStateMachine::setupAndStart()
-    {
         // Setup transition map
         setupTransitionMap();
 
@@ -92,37 +93,31 @@ namespace DwfStateMachine
         start();
     }
 
-    void AbstractStateMachine::processEvent(std::unique_ptr<EventSystem::DwfEvent>&& event)
+    void AbstractPeriodicStateMachine::startTimer()
     {
-        EventTransitionMap ev_tr_map;
-        TransitionFunction tr_function;
-        bool has_transition_map=true;
+        m_periodic_timer.start();
+    }
 
+    void AbstractPeriodicStateMachine::stopTimer()
+    {
+        m_periodic_timer.stop();
+    }
+
+    void AbstractPeriodicStateMachine::callStateFunction()
+    {
+        PeriodicFunction per_function;
         try
         {
-            ev_tr_map=m_transition_map.at(m_current_state);
+            per_function=m_periodic_function_maps.at(m_current_state);
         }
-        catch (const std::exception& e)
+        catch (const std::exception&)
         {
-            onDeadEndState(e);
-            has_transition_map=false;
+            // If there is no function associated with current state we do nothing.
+            // Indeed in some states, it is perfectly legit to do nothing on a periodic basis even if timer is started.
         }
-
-        if(has_transition_map)
+        if(per_function)
         {
-            try
-            {
-                tr_function=ev_tr_map.at(*event);
-            }
-            catch (const std::exception&)
-            {
-                // If there is no transition associated with event for current state, we do nothing.
-                // Indeed in some states, it is perfectly legit to choose to ignore events.
-            }
-            if(tr_function)
-            {
-                tr_function(std::move(event));
-            }
+            per_function();
         }
     }
 }

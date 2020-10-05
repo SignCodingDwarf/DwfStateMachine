@@ -1,15 +1,14 @@
 /*!
- * @file abstractstatemachine.cpp
- * @brief Class representing event based state machine.
+ * @file main.cpp
+ * @brief Main application file of AbstractPeriodicStateMachine unit tests.
  * @author SignC0dingDw@rf
- * @date 02 October 2020
+ * @date 05 October 2020
  *
- * Class representing an event based state machine.
- * In such state machines, all computations are performed when receiving an event.
- * Inherits from AbstractEventProcessor.
- * Abstract class.
+ * Main application file of AbstractPeriodicStateMachine unit tests. <br>
+ * Allows to run every test or a single test by passing TestFixture::TestName as a binary call argument
  *
  */
+
 /*
 MIT License
 
@@ -71,60 +70,62 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#include "abstractstatemachine.h"
+#include <cppunit/BriefTestProgressListener.h>
+#include <cppunit/CompilerOutputter.h>
+#include <cppunit/XmlOutputter.h>
+#include <cppunit/extensions/TestFactoryRegistry.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
 
-namespace DwfStateMachine
+#include <iostream>
+#include "abstractperiodicstatemachinetest.h"
+
+int main(int argc, char* argv[])
 {
-    AbstractStateMachine::AbstractStateMachine(DwfState initial_state, size_t max_element_nb) : EventSystem::AbstractEventProcessor(max_element_nb), m_current_state(initial_state)
+    // Create the event manager and test controller
+    CPPUNIT_NS::TestResult controller;
+
+    // Add a listener that colllects test result
+    CPPUNIT_NS::TestResultCollector result;
+    controller.addListener(&result);
+
+    // Add a listener that indicates the name of tests as they run
+    CPPUNIT_NS::BriefTestProgressListener progress;
+    controller.addListener(&progress);
+
+    // Setup test runner and assemble registered test suites
+    CPPUNIT_NS::TestRunner runner;
+    CPPUNIT_NS::Test* tests = CPPUNIT_NS::TestFactoryRegistry::getRegistry().makeTest();
+    runner.addTest(tests);
+
+    // Select the tests to run based on call arguments
+    std::string test="";
+    if(argc==2)
     {
+        test=argv[1];
+        std::cout << "Running test : " << test << std::endl;
+    }
+    else
+    {
+        std::cout << "Running all tests" << std::endl;
     }
 
-    AbstractStateMachine::~AbstractStateMachine()
+    // Run tests
+    try
     {
+        runner.run(controller, test);
+    }
+    catch(std::exception& e)
+    {
+        std::cout << "Test generated exception : " << std::endl << e.what() << std::endl;
     }
 
-    void AbstractStateMachine::setupAndStart()
-    {
-        // Setup transition map
-        setupTransitionMap();
+    // display result
+    CPPUNIT_NS::CompilerOutputter outputter(&result, CPPUNIT_NS::stdCOut());
+    outputter.write();
 
-        // Start event processing
-        start();
-    }
-
-    void AbstractStateMachine::processEvent(std::unique_ptr<EventSystem::DwfEvent>&& event)
-    {
-        EventTransitionMap ev_tr_map;
-        TransitionFunction tr_function;
-        bool has_transition_map=true;
-
-        try
-        {
-            ev_tr_map=m_transition_map.at(m_current_state);
-        }
-        catch (const std::exception& e)
-        {
-            onDeadEndState(e);
-            has_transition_map=false;
-        }
-
-        if(has_transition_map)
-        {
-            try
-            {
-                tr_function=ev_tr_map.at(*event);
-            }
-            catch (const std::exception&)
-            {
-                // If there is no transition associated with event for current state, we do nothing.
-                // Indeed in some states, it is perfectly legit to choose to ignore events.
-            }
-            if(tr_function)
-            {
-                tr_function(std::move(event));
-            }
-        }
-    }
+    return result.wasSuccessful() ? 0 : 1;
 }
 
 //  ______________________________

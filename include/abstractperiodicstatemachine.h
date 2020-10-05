@@ -1,12 +1,13 @@
 /*!
- * @file abstractstatemachine.h
- * @brief Class representing event based state machine.
+ * @file abstractperiodicstatemachine.h
+ * @brief Class representing event based state machine with periodic execution of computation.
  * @author SignC0dingDw@rf
- * @date 02 October 2020
+ * @date 03 October 2020
  *
- * Class representing an event based state machine.
- * In such state machines, all computations are performed when receiving an event.
- * Inherits from AbstractEventProcessor.
+ * Class representing an event based state machine with periodic execution of computation.
+ * In such state machines, computations and state changes can be performed either when receiving an event or periodically.
+ * Periodic execution is based on a timer that must be explicitely started.
+ * Inherits from AbstractStateMachine.
  * Abstract class.
  *
  */
@@ -72,13 +73,11 @@ You should have received a good beat down along with this program.
 If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 
-#ifndef DWF_STATE_MACHINE_H
-#define DWF_STATE_MACHINE_H
+#ifndef ABSTRACT_PERIODIC_STATE_MACHINE_H
+#define ABSTRACT_PERIODIC_STATE_MACHINE_H
 
-#include "dwfstate.h"
-#include "abstracteventprocessor.h"
-#include <unordered_map>
-#include <functional>
+#include "abstractstatemachine.h"
+#include "dwftimer.h"
 
 /*!
 * @namespace DwfStateMachine
@@ -86,17 +85,21 @@ If not, see <http://www.dwarfvesaregonnabeatyoutodeath.com>.
 */
 namespace DwfStateMachine
 {
-    /*! @class AbstractStateMachine
-    * @brief Class representing event based state machine.
+    /*! @class AbstractPeriodicStateMachine
+    * @brief Class representing event based state machine with periodic execution of computation.
     *
-    * Class representing an event based state machine.
+    * Class representing an event based state machine with periodic execution of computation.
     * On event reception, computations are performed by a transition function called from a map with entries being event type and current state.
-    * Inherits from AbstractEventProcessor.
-    * Abstract class. You must derive it and fill the table of transitions
+    * Some computations are also performed periodically based on a timer execution.
+    * Timer is not started by default and should be started when reaching appropriate state in the transition function.
+    * Inherits from AbstractStateMachine.
+    * Abstract class. You must derive it and fill the table of transitions and table of periodic functions
     *
     * Call behavior of a daughter class should be
-    * - DaughterStateMachine state_mach(<initial_state>);
+    * - DaughterPeriodicStateMachine state_mach(<initial_state>,<initial_period>);
     * - state_mach.setupAndStart();
+    *
+    * You must redefine the function setupStateFunctionMap() to construct the desired periodic function map during setupAndStart phase.
     *
     * You must redefine the function setupTransitionMap() to construct the desired transition map during setupAndStart phase.
     *
@@ -104,62 +107,51 @@ namespace DwfStateMachine
     * (i.e. m_transition_map.at(state) throws an exception).
     *
     */
-    class AbstractStateMachine : public EventSystem::AbstractEventProcessor
+    class AbstractPeriodicStateMachine : public AbstractStateMachine
     {
     public:
-        /*! @typedef TransitionFunction
-        *  @brief Signature of a transition function
+        /*! @typedef PeriodicFunction
+        *  @brief Signature of a function called periodically
         */
-        using TransitionFunction = std::function<void(std::unique_ptr<EventSystem::DwfEvent>&&)>;
+        using PeriodicFunction = std::function<void(void)>;
 
-        /*! @typedef EventTransitionMap
-        *  @brief Map associating an event with the triggered transition
+        /*! @typedef PeriodicFunctionMap
+        *  @brief Map associating a state with associated periodic computation function
         */
-        using EventTransitionMap = std::unordered_map<EventSystem::DwfEvent, TransitionFunction, EventSystem::EventHasher>;
-
-        /*! @typedef TransitionMap
-        *  @brief Map associating a state with its supported events and the triggered transition
-        */
-        using TransitionMap = std::unordered_map<DwfState, EventTransitionMap, StateHasher>;
+        using PeriodicFunctionMap = std::unordered_map<DwfState, PeriodicFunction, StateHasher>;
 
         /*!
         * @brief Constructor of AbstractStateMachine class
         * @param initial_state : Initial State of the machine.
+        * @param default_period : Defined default period of state machine.
         * @param max_element_nb : Max number of elements that can be stored in event queue. Default indicates no size limitation.
         *
-        * Constructor of the AbstractStateMachine class defining initial state, and setting event processing.
+        * Constructor of the AbstractStateMachine class defining initial state, setting event processing and configuring periodic timer.
         *
         */
-        AbstractStateMachine(DwfState initial_state, size_t max_element_nb = DwfContainers::DwfQueue< std::unique_ptr<EventSystem::DwfEvent> >::C_NO_SIZE_LIMIT);
+        template< class Rep, class Period >
+        AbstractPeriodicStateMachine(DwfState initial_state, const std::chrono::duration<Rep,Period>& initial_period, size_t max_element_nb = DwfContainers::DwfQueue< std::unique_ptr<EventSystem::DwfEvent> >::C_NO_SIZE_LIMIT);
 
         /*!
-        * @brief Destructor of AbstractStateMachine class
+        * @brief Destructor of AbstractPeriodicStateMachine class
+        *
+        * Does nothing (assumes DwfTimer class stops timer at destruction)
         *
         */
-        virtual ~AbstractStateMachine();
+        virtual ~AbstractPeriodicStateMachine();
 
         /*!
         * @brief Configure state machine and start event processing
         *
+        * Create the state function map using setupStateFunctionMap.
         * Create the transition map using method setupTransitionMap.
         * Start event processing.
-        * Virtual method.
+        * Final virtual method
         *
         */
-        virtual void setupAndStart();
+        virtual void setupAndStart() final;
 
     protected:
-        /*!
-        * @brief Process received event
-        * @param event : latest event extracted from event queue
-        *
-        * Selects a transition function to call depending on current state and event type.
-        * Calls it with received event as argument.
-        * Final virtual method.
-        *
-        */
-        virtual void processEvent(std::unique_ptr<EventSystem::DwfEvent>&& event) final;
-
         /*!
         * @brief Fill the transition map
         *
@@ -167,6 +159,14 @@ namespace DwfStateMachine
         *
         */
         virtual void setupTransitionMap() = 0;
+
+        /*!
+        * @brief Fill the state function map
+        *
+        * Purely Virtual method
+        *
+        */
+        virtual void setupStateFunctionMap() = 0;
 
         /*!
         * @brief Dead end state reaching handler
@@ -180,12 +180,85 @@ namespace DwfStateMachine
         */
         virtual void onDeadEndState(const std::exception& e) = 0;
 
-        DwfState m_current_state; /*!< Current state.*/
+        /*!
+        * @brief Start control timer
+        *
+        */
+        void startTimer();
 
-        TransitionMap m_transition_map; /*!< List of possible transition functions depending on current_state and events. Protected so that child class can setup map content easily.*/
+        /*!
+        * @brief Stop control timer
+        *
+        */
+        void stopTimer();
+
+        /*!
+        * @brief Set timer period and (re)start it
+        * @param period : Defined new period of state machine.
+        *
+        * Stop timer then change its period.
+        * Finally timer is (re)started.
+        *
+        */
+        template< class Rep, class Period >
+        void changePeriodAndStart(const std::chrono::duration<Rep,Period>& period);
+
+        /*!
+        * @brief Set timer period and keep it stopped
+        * @param period : Defined new period of state machine.
+        *
+        * Stop timer then change its period.
+        * The timer is not (re)started
+        *
+        */
+        template< class Rep, class Period >
+        void changePeriodAndStop(const std::chrono::duration<Rep,Period>& period);
+
+        PeriodicFunctionMap m_periodic_function_maps; /*!< Map associating periodic computations with machine states.*/
+
+    private:
+        /*!
+        * @brief Call the function associated with current state
+        *
+        * Handler called on periodic timer timeout.
+        * If current state is associated with periodic function, run it. Otherwise do nothing.
+        *
+        */
+        void callStateFunction();
+
+        DwfTime::DwfTimer m_periodic_timer; /*!< Timer controlling execution of periodic computations.*/
     };
+
+    template< class Rep, class Period >
+    AbstractPeriodicStateMachine::AbstractPeriodicStateMachine(DwfState initial_state, const std::chrono::duration<Rep,Period>& initial_period, size_t max_element_nb) : AbstractStateMachine(initial_state, max_element_nb), m_periodic_timer()
+    {
+        // Timer configuration
+        m_periodic_timer.setSingleShot(false);
+        m_periodic_timer.callOnTimeout([this](){callStateFunction();});
+        m_periodic_timer.setPeriod(initial_period);
+    }
+
+    template< class Rep, class Period >
+    void AbstractPeriodicStateMachine::changePeriodAndStart(const std::chrono::duration<Rep,Period>& period)
+    {
+        // Stop timer and change period
+        changePeriodAndStop(period);
+
+        // (Re)start timer
+        startTimer();
+    }
+
+    template< class Rep, class Period >
+    void AbstractPeriodicStateMachine::changePeriodAndStop(const std::chrono::duration<Rep,Period>& period)
+    {
+        // Stop timer
+        stopTimer();
+
+        // New period
+        m_periodic_timer.setPeriod(period);
+    }
 }
-#endif // DWF_STATE_MACHINE_H
+#endif // ABSTRACT_PERIODIC_STATE_MACHINE_H
 
 //  ______________________________
 // |                              |
