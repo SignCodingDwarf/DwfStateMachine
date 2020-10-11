@@ -2,7 +2,7 @@
  * @file dwfqueuepushpoptest.cpp
  * @brief Class implementing DwfQueue push and pop unit tests.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 11 October 2020
  *
  * Implementation of class performing DwfQueue push and pop unit tests. <br>
  * Inherits from TestFixture
@@ -322,6 +322,69 @@ void DwfQueuePushPopTest::testPopBlockingMove()
 
     readingThread.join();
 }
+
+void DwfQueuePushPopTest::testClear()
+{
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                              0 : Init                              ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    DwfContainers::DwfQueue< int > testQueue;
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                       1 : Spawn popper thread                      ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    std::atomic<bool> waitForElements(true);
+    std::atomic<uint32_t> elements_popped(0u);
+    const std::function<void(void)> threadFunction = [&testQueue, &waitForElements, &elements_popped]()
+    {
+        while(waitForElements)
+        {
+            int popped=0u;
+            testQueue.pop(popped);
+
+            if(popped != 0)
+            {
+                ++elements_popped;
+            }
+            if(waitForElements)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000u));
+            }
+        }
+    };
+    std::thread readingThread(threadFunction);
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                          2 : Push Elements                         ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    for(int i=1; i<=10; ++i)
+    {
+        testQueue.push(i);
+    }
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue should not be empty ", false, testQueue.empty());
+    std::this_thread::sleep_for(std::chrono::milliseconds(100u)); // Wait a little bit for an element to be processed
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                           3 : Clear queue                          ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    testQueue.clear();
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Queue should be empty", true, testQueue.empty());
+    waitForElements=false;
+    testQueue.disableWait(); // Force queue to exit
+
+    readingThread.join();
+
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Only first element should have been processed", 1u, elements_popped.load()); // First element was processed. Due to long sleep, no other should be processed before clear.
+}
+
 //  ______________________________
 // |                              |
 // |    ______________________    |

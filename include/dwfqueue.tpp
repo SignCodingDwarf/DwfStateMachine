@@ -2,7 +2,7 @@
  * @file dwfqueue.tpp
  * @brief Class defining a thread safe queue.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 11 October 2020
  *
  * Class defining a thread safe size-limited queue.
  *
@@ -142,6 +142,19 @@ namespace DwfContainers
     void DwfQueue<T>::enableWait()
     {
         m_wait_disabled=false;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                               Clear                                ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    template<class T>
+    void DwfQueue<T>::clear()
+    {
+        std::queue<T> empty;
+        std::unique_lock<std::mutex> datalock(m_data_mutex);
+        std::swap( m_queue, empty );
     }
 
     //////////////////////////////////////////////////////////////////////////

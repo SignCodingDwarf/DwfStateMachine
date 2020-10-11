@@ -2,7 +2,7 @@
  * @file dwfqueue.h
  * @brief Class defining a thread safe queue.
  * @author SignC0dingDw@rf
- * @date 11 July 2020
+ * @date 11 October 2020
  *
  * Class defining a thread safe size-limited queue.
  *
@@ -173,6 +173,17 @@ namespace DwfContainers
         *
         */
         void enableWait();
+
+        //////////////////////////////////////////////////////////////////////////
+        ///                                                                    ///
+        ///                               Clear                                ///
+        ///                                                                    ///
+        //////////////////////////////////////////////////////////////////////////
+        /*!
+        * @brief Delete all elements in queue
+        *
+        */
+        void clear();
 
         //////////////////////////////////////////////////////////////////////////
         ///                                                                    ///

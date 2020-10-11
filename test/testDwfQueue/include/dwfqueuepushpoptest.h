@@ -2,7 +2,7 @@
  * @file dwfqueuepushpoptest.h
  * @brief Class implementing DwfQueue push and pop unit tests.
  * @author SignC0dingDw@rf
- * @date 15 June 2020
+ * @date 11 October 2020
  *
  * Definition of class performing DwfQueue push and pop unit tests. <br>
  * Inherits from TestFixture
@@ -92,6 +92,7 @@ public:
         CPPUNIT_TEST(testPushPopMoveFull);
         CPPUNIT_TEST(testPopBlockingCopy);
         CPPUNIT_TEST(testPopBlockingMove);
+        CPPUNIT_TEST(testClear);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -171,7 +172,7 @@ public:
 
 
     /*!
-    * @brief Check pop is indeed
+    * @brief Check pop is blocking
     *
     * 0) Create an int queue.
     * 1) Spawn a waiting thread and wait for elements
@@ -181,7 +182,7 @@ public:
     void testPopBlockingCopy();
 
     /*!
-    * @brief Check pop is indeed
+    * @brief Check pop is blocking
     *
     * 0) Create an unique_ptr<int> queue.
     * 1) Spawn a waiting thread and wait for elements
@@ -189,6 +190,17 @@ public:
     *
     */
     void testPopBlockingMove();
+
+    /*!
+    * @brief Check clear behavior
+    *
+    * 0) Create an unique_ptr<int> queue.
+    * 1) Spawn a waiting thread and wait for elements
+    * 2) Push a few elements
+    * 3) Clear queue and check it is now empty and no crash occurs
+    *
+    */
+    void testClear();
 };
 
 #endif // DWF_QUEUE_PUSH_POP_TEST_H
