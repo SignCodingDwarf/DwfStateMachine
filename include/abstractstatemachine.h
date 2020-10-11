@@ -2,7 +2,7 @@
  * @file abstractstatemachine.h
  * @brief Class representing event based state machine.
  * @author SignC0dingDw@rf
- * @date 02 October 2020
+ * @date 11 October 2020
  *
  * Class representing an event based state machine.
  * In such state machines, all computations are performed when receiving an event.
@@ -134,6 +134,8 @@ namespace DwfStateMachine
 
         /*!
         * @brief Destructor of AbstractStateMachine class
+        *
+        * Stop event processing before deleting events
         *
         */
         virtual ~AbstractStateMachine();

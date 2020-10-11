@@ -2,7 +2,7 @@
  * @file abstractperiodicstatemachinetest.h
  * @brief Class implementing AbstractPeriodicStateMachine unit tests.
  * @author SignC0dingDw@rf
- * @date 10 October 2020
+ * @date 11 October 2020
  *
  * Definition of class performing AbstractPeriodicStateMachine unit tests. <br>
  * Inherits from TestFixture
@@ -87,7 +87,7 @@ class AbstractPeriodicStateMachineTest : public CPPUNIT_NS::TestFixture
 public:
     CPPUNIT_TEST_SUITE(AbstractPeriodicStateMachineTest);
         CPPUNIT_TEST(testDeletion);
-    //    CPPUNIT_TEST(testSizeLimit);
+        CPPUNIT_TEST(testSizeLimit);
         CPPUNIT_TEST(testDeadEndState);
         CPPUNIT_TEST(testTimerStartStop);
         CPPUNIT_TEST(testTimerChangePeriod);

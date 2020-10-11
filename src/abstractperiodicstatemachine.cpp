@@ -2,7 +2,7 @@
  * @file abstractperiodicstatemachine.cpp
  * @brief Class representing event based state machine with periodic execution of computation.
  * @author SignC0dingDw@rf
- * @date 03 October 2020
+ * @date 11 October 2020
  *
  * Class representing an event based state machine with periodic execution of computation.
  * In such state machines, computations and state changes can be performed either when receiving an event or periodically.
@@ -79,6 +79,8 @@ namespace DwfStateMachine
 {
     AbstractPeriodicStateMachine::~AbstractPeriodicStateMachine()
     {
+        stopTimer();
+        stop();
     }
 
     void AbstractPeriodicStateMachine::setupAndStart()
