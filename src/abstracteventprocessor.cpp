@@ -2,7 +2,7 @@
  * @file abstracteventprocessor.cpp
  * @brief Class defining common fonctionnlaties to an event processor.
  * @author SignC0dingDw@rf
- * @date 08 August 2020
+ * @date 11 October 2020
  *
  * Class implementing an event processor i.e. a class receiving events in a fifo and processing them in reception order.
  * Abstract class. Should be derived to implement process_event method to define application specific event processing actions.
@@ -80,13 +80,7 @@ namespace EventSystem
 
     AbstractEventProcessor::~AbstractEventProcessor()
     {
-        m_start_event_processing = false;
-        m_event_queue.disableWait(); // Force exit of queue waiting thread to unlock waiter thread
-
-        if(m_event_processing_thread.joinable())
-        {
-            m_event_processing_thread.join(); // Wait for thread to complete execution
-        }
+        stop();
     }
 
     void AbstractEventProcessor::pushEvent(std::unique_ptr<DwfEvent>&& event)
@@ -99,10 +93,27 @@ namespace EventSystem
 
     void AbstractEventProcessor::start()
     {
-        m_start_event_processing = true; // Activate event procesing flag
-        m_event_processing_thread = std::thread([this]{waitEvents();});
+        if(!m_start_event_processing)
+        {
+            m_start_event_processing = true; // Activate event procesing flag
+            m_event_processing_thread = std::thread([this]{waitEvents();});
+        }
     }
 
+    void AbstractEventProcessor::stop()
+    {
+        if(m_start_event_processing)
+        {
+            m_start_event_processing = false;
+            m_event_queue.clear(); // Clear event queue
+            m_event_queue.disableWait(); // Force exit of queue waiting thread to unlock waiter thread
+
+            if(m_event_processing_thread.joinable())
+            {
+                m_event_processing_thread.join(); // Wait for thread to complete execution
+            }
+        }
+    }
 
     void AbstractEventProcessor::waitEvents()
     {

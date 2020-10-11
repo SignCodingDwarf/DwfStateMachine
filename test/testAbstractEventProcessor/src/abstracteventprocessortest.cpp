@@ -2,7 +2,7 @@
  * @file abstracteventprocessortest.cpp
  * @brief Class implementing AbstractEventProcessor unit tests.
  * @author SignC0dingDw@rf
- * @date 08 August 2020
+ * @date 11 October 2020
  *
  * Implementation of class performing AbstractEventProcessor unit tests. <br>
  * Inherits from TestFixture
@@ -288,6 +288,61 @@ void AbstractEventProcessorTest::testInheritance()
     CPPUNIT_ASSERT_EQUAL_MESSAGE("Error on event 1", std::string("is a wookie"), received_str_vals[1]);
 }
 
+void AbstractEventProcessorTest::testStop()
+{
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                              0 : Init                              ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    TestEventProcessor ev_processor(DwfContainers::DwfQueue< std::unique_ptr<EventSystem::DwfEvent> >::C_NO_SIZE_LIMIT, std::chrono::milliseconds(1000));
+    ev_processor.start();
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                              1 : Push                              ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    for(EventSystem::EventID i=1; i<=7; ++i)
+    {
+        std::unique_ptr<EventSystem::DwfEvent> ev(new EventSystem::DwfEvent(i));
+        ev_processor.pushEvent(std::move(ev));
+    }
+    // Wait a little bit for first event to be processed
+    std::this_thread::sleep_for (std::chrono::milliseconds(100));
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                             2 : Stop                               ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    ev_processor.stop();
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                              3 : Push                              ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    for(EventSystem::EventID i=8; i<=10; ++i)
+    {
+        std::unique_ptr<EventSystem::DwfEvent> ev(new EventSystem::DwfEvent(i));
+        ev_processor.pushEvent(std::move(ev));
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    ///                                                                    ///
+    ///                             4 : Start                              ///
+    ///                                                                    ///
+    //////////////////////////////////////////////////////////////////////////
+    ev_processor.start();
+    // Wait a little bit to be sure an event in list would be processed
+    std::this_thread::sleep_for (std::chrono::milliseconds(100));
+    size_t event_nb=1u;
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Only first event pushed should have been processed", 1u, ev_processor.getProcessedEventsNumber());
+    std::vector<EventSystem::EventID> received_ids = ev_processor.getReceivedIds();
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Only first event pushed should have been stored", event_nb, received_ids.size());
+    CPPUNIT_ASSERT_EQUAL_MESSAGE("Only first event pushed should have been stored", 1u, received_ids[0]);
+}
 
 //  ______________________________
 // |                              |

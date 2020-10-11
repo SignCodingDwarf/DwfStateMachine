@@ -2,7 +2,7 @@
  * @file abstracteventprocessor.h
  * @brief Class defining common fonctionnlaties to an event processor.
  * @author SignC0dingDw@rf
- * @date 08 August 2020
+ * @date 11 October 2020
  *
  * Class implementing an event processor i.e. a class receiving events in a fifo and processing them in reception order.
  * Abstract class. Should be derived to implement process_event method to define application specific event processing actions.
@@ -108,7 +108,7 @@ namespace EventSystem
         /*!
         * @brief Destructor of AbstractEventProcessor class
         *
-        * Forces event queue to stop waiting for events and waits for waiter thread to join.
+        * Stop event processing
         *
         */
         virtual ~AbstractEventProcessor();
@@ -130,6 +130,14 @@ namespace EventSystem
          *
          */
         void start();
+
+        /*!
+         * @brief Stop processing events
+         *
+         * Stop event procssing thread and clear event queue.
+         *
+         */
+        void stop();
 
     protected:
         /*!

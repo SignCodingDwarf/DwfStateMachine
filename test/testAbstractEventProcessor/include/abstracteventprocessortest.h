@@ -2,7 +2,7 @@
  * @file abstracteventprocessortest.h
  * @brief Class implementing AbstractEventProcessor unit tests.
  * @author SignC0dingDw@rf
- * @date 08 August 2020
+ * @date 11 October 2020
  *
  * Definition of class performing AbstractEventProcessor unit tests. <br>
  * Inherits from TestFixture
@@ -90,6 +90,7 @@ public:
         CPPUNIT_TEST(testPush);
         CPPUNIT_TEST(testSizeLimit);
         CPPUNIT_TEST(testInheritance);
+        CPPUNIT_TEST(testStop);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -172,6 +173,18 @@ public:
     *
     */
     void testInheritance();
+
+    /*!
+    * @brief Check stop behavior
+    *
+    * 0) Create and start TestEventProcessor with very long computation time.
+    * 1) Push a few events with different IDs.
+    * 2) Stop event processor
+    * 3) Push events with different IDs.
+    * 4) Start TestEventProcessor and check only first event was really processed.
+    *
+    */
+    void testStop();
 
 };
 
